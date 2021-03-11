@@ -1,9 +1,8 @@
 Cheat Device for PS2
 ====================
 
-[![Build Status](https://travis-ci.com/israpps/CheatDevicePS2.svg?branch=master)](https://travis-ci.com/israpss/CheatDevicePS2)
-[![Downloads](https://img.shields.io/github/downloads/israpps/CheatDevicePS2/total.svg)](https://github.com/root670/CheatDevicePS2/releases)
-[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](https://github.com/root670/CheatDevicePS2/blob/master/LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/israpps/CheatDevicePS2/total.svg)](https://github.com/israpps/CheatDevicePS2/releases)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](https://github.com/israpps/CheatDevicePS2/blob/master/LICENSE)
 
 Cheat Device is a game enhancer for PlayStation 2 games similar to Action 
 Replay, GameShark, and CodeBreaker. It supports booting retail, disc based 
