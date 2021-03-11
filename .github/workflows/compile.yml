@@ -1,0 +1,49 @@
+#root670/ps2dev-docker:latest
+
+name: Automated-Build
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+  repository_dispatch:
+    types: [run_build]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: root670/ps2dev-docker:latest
+    #container: ps2dev/ps2dev:v1.0
+    steps:
+    - name: Install dependencies
+      run: |
+        apk add build-base git zip
+    - uses: actions/checkout@v2
+    - run: |
+        git fetch --prune --unshallow
+    - name: Compile
+      run: |
+        make
+    - name: list files
+      run: |
+        ls
+        
+    - name: Upload artifacts
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: FMCBinstaller-${{ steps.slug.outputs.sha8 }}
+        path: |
+            *.ELF
+            *.elf
+    - name: Create release
+      if: github.ref == 'refs/heads/master'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        title: "Latest automated compilation and repack"
+        files: |
+               *.ELF
+               *.elf
