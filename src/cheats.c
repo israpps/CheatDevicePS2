@@ -40,6 +40,7 @@ typedef struct cheatDatabaseHandler {
 
 static cheatDatabaseHandler_t cheatDatabaseHandlers[] = {
     {"Text File (.txt)", "txt", textCheatsOpen, textCheatsSave},
+    {"Text database (.DB)", "DB", textCheatsOpen, textCheatsSave},
     {"Text File in ZIP (.zip)", "zip", textCheatsOpenZip, NULL}
 };
 

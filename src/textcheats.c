@@ -393,7 +393,7 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
     while(hasNextFile == UNZ_OK)
     {
         const char *extension = getFileExtension(filename);
-        if(!extension || strcasecmp(extension, "txt") != 0)
+        if(!extension || (strcasecmp(extension, "txt") != 0 || strcasecmp(extension, "DB") != 0))
         {
             // Not a .txt file
             hasNextFile = unzGoToNextFile2(zipFile, &zipFileInfo,
