@@ -96,7 +96,7 @@ static u64 graphicsColorTable[] = {
     GS_SETREG_RGBAQ(0xF0,0x00,0x00,0x80,0x80), // COLOR_RED
     GS_SETREG_RGBAQ(0x00,0xF0,0x00,0x80,0x80), // COLOR_GREEN
     GS_SETREG_RGBAQ(0x20,0x20,0xA0,0x80,0x80), // COLOR_BLUE
-    GS_SETREG_RGBAQ(0xF0,0xB0,0x00,0x80,0x80)  // COLOR_YELLOW
+    GS_SETREG_RGBAQ(0xFE,0x6B,0x01,0x80,0x80)  // COLOR_YELLOW
 };
 
 int VBlankStartSema;
@@ -642,7 +642,7 @@ static void drawPromptBox(float width, float height, u64 color)
 
 void graphicsDrawPromptBox(float width, float height)
 {
-    drawPromptBox(width, height, GS_SETREG_RGBAQ(0x22, 0x22, 0xEE, 0x60, 0x80));
+    drawPromptBox(width, height, GS_SETREG_RGBAQ(0xFB, 0x6B, 0x01, 0x60, 0x80));
 }
 
 void graphicsDrawPromptBoxBlack(float width, float height)
