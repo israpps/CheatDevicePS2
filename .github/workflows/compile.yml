@@ -28,15 +28,25 @@ jobs:
     - name: list files
       run: |
         ls
+    - name: copy cheat device to release packages
+      run: |
+        cp cheatdevice.elf __Release/CheatDevice-PAL/
+        cp cheatdevice.elf __Release/CheatDevice-NTSC/
+
+    - name: compress packages
+      run: |
+        cd __Release
+        zip -r CheatDevice-PAL.zip CheatDevice-PAL/*
+        zip -r CheatDevice-NTSC.zip CheatDevice-NTSC/*
         
     - name: Upload artifacts
       if: ${{ success() }}
       uses: actions/upload-artifact@v2
       with:
-        name: FMCBinstaller-${{ steps.slug.outputs.sha8 }}
+        name: Cheat Device
         path: |
-            *.ELF
-            *.elf
+          __Release/*.zip
+            
     - name: Create release
       if: github.ref == 'refs/heads/master'
       uses: marvinpinto/action-automatic-releases@latest
@@ -45,5 +55,4 @@ jobs:
         automatic_release_tag: "latest"
         title: "Latest automated compilation and repack"
         files: |
-               *.ELF
-               *.elf
+               __Release/*.zip
