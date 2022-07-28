@@ -19,7 +19,7 @@ clean:
 	rm -f *.o *.elf *.erl
 
 engine.erl: $(EE_OBJS)
-	$(EE_CC) -mno-stdlib -nostartfiles -o $@ $(EE_OBJS) $(EE_CFLAGS) \
+	$(EE_CC) -nostdlib -nostartfiles -o $@ $(EE_OBJS) $(EE_CFLAGS) \
 		$(EE_INCS) $(EE_LDFLAGS) -Wl,-r -Wl,-d
 	$(EE_STRIP) --strip-unneeded -R .mdebug.eabi64 -R .reginfo -R .comment $@
 
