@@ -1,1 +1,0 @@
-Load ELF into memory, reset the IOP, and execute it. If loading and ELF from a device other than cdrom0, make sure the proper IRX modules are loaded before running this.
