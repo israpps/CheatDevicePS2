@@ -34,6 +34,12 @@ $theme-menu-width-sm: 100%;
       color: $fontcol;
     }
   }
+  code,
+  tt {
+    color: $theme-code-inline;
+    background-color: $theme-code-inline-background;
+  }
+
 }
 body {
   color: $fontcol;
@@ -59,7 +65,6 @@ $theme-code-inline-background: lighten($theme-black, 6%);
   code,
   tt {
     color: $theme-code-inline;
-    border-color: transparent;
     background-color: $theme-code-inline-background;
   }
 
