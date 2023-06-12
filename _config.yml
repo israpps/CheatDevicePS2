@@ -1,0 +1,30 @@
+title: Cheat Device
+description: Game enhancer for PlayStation 2 similar to Action Replay, GameShark, and CodeBreaker
+
+remote_theme: rundocs/jekyll-rtd-theme
+# debug:
+#   compress: true
+#   dist: false
+#   shortcodes: true
+
+readme_index:
+  with_frontmatter: true
+
+plugins:
+  - jemoji
+  - jekyll-avatar
+  - jekyll-mentions
+
+exclude:
+  - Makefile
+  - CNAME
+  - LICENSE
+  - update.sh
+  - Gemfile
+  - Gemfile.lock
+  - requirements.txt
+  - node_modules
+  - package.json
+  - package-lock.json
+  - webpack.config.js
+  - jekyll-rtd-theme.gemspec
