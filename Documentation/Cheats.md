@@ -23,7 +23,7 @@ The advantage of a 9-type hook code instead of an automatic hook (whether it's u
 
 ## TXT Cheat Database Format
 
-```ini
+```txt
 "Game Name"
 Enable
 90000000 88888888
