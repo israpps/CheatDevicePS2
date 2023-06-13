@@ -461,7 +461,6 @@ static void onSaveSelected(const menuItem_t *selected)
         items[1] = MEMORY_CARD_2_NAME;
         numDevices = 2;
     }
-
     char promptText[128];
     snprintf(promptText, sizeof(promptText),
         "\"%s\"\nSelect device to copy save to", save->name);
@@ -469,7 +468,10 @@ static void onSaveSelected(const menuItem_t *selected)
     int ret = displayPromptMenu(items, numDevices, promptText);
 
     if(ret >= 0)
+    {
+        DPRINTF("%s: %s -> %s\n", __FUNCTION__, save->name, devices[ret]);
         doCopy(s_currentDevice, devices[ret], save);
+    }
 }
 
 void savesLoadSaveMenu(device_t dev)
