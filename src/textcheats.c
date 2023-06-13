@@ -367,7 +367,10 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
 
     unzFile zipFile = unzOpen(path);
     if(!zipFile)
+    {
+        DPRINTF("%s: file doesnt exist '%s'\n", __func__, path)
         return 1; // File doesn't exist.
+    }
 
     unz_global_info zipGlobalInfo;
     if(unzGetGlobalInfo(zipFile, &zipGlobalInfo) != UNZ_OK)
@@ -394,8 +397,9 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
     while(hasNextFile == UNZ_OK)
     {
         const char *extension = getFileExtension(filename);
-        if((!extension) || (strcasecmp(extension, "txt") != 0) || (strcasecmp(extension, "cht") != 0))
+        if(!extension || strcasecmp(extension, "txt") != 0 || strcasecmp(extension, "cht") != 0)
         {
+            DPRINTF("%s: %s not a text file\n", __func__, filename);
             // Not a .txt file
             hasNextFile = unzGoToNextFile2(zipFile, &zipFileInfo,
                                         filename, sizeof(filename),
