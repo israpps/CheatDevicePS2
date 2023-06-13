@@ -368,7 +368,7 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
     unzFile zipFile = unzOpen(path);
     if(!zipFile)
     {
-        DPRINTF("%s: file doesnt exist '%s'\n", __func__, path)
+        DPRINTF("%s: file doesnt exist '%s'\n", __func__, path);
         return 1; // File doesn't exist.
     }
 
@@ -396,10 +396,11 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
     int hasNextFile = UNZ_OK;
     while(hasNextFile == UNZ_OK)
     {
+        DPRINTF("%s: reading %s...\n", __func__, filename);
         const char *extension = getFileExtension(filename);
         if(!extension || strcasecmp(extension, "txt") != 0 || strcasecmp(extension, "cht") != 0)
         {
-            DPRINTF("%s: %s not a text file\n", __func__, filename);
+            DPRINTF("\t- not a text file\n");
             // Not a .txt file
             hasNextFile = unzGoToNextFile2(zipFile, &zipFileInfo,
                                         filename, sizeof(filename),
@@ -407,16 +408,20 @@ int textCheatsOpenZip(const char *path, cheatsGame_t **gamesAdded, unsigned int 
                                         NULL, 0);
             continue;
         }
-
+        int temp;
         // Current file is a .txt file, so we'll try to read it
-        if(unzOpenCurrentFile(zipFile) != UNZ_OK)
+        if((temp = unzOpenCurrentFile(zipFile)) != UNZ_OK)
         {
+            DPRINTF("\t- Cant open (%d)\n", temp);
             unzClose(zipFile);
             return 0;
         }
 
         if(zipFileInfo.uncompressed_size == 0)
+        {
+            DPRINTF("Empty file...\n");
             continue; // Empty file.
+        }
 
         // +1 to NULL-terminate later
         char *text = malloc(zipFileInfo.uncompressed_size + 1);
