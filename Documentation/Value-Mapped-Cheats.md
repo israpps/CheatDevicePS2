@@ -12,7 +12,7 @@ A code line can reference a value map by using a `$` character followed by the v
 
 ## Example
 
-```ini
+```
 "Grand Theft Auto Vice City v1.40"
 
 [Car]
@@ -37,7 +37,7 @@ Press {SELECT} to Spawn a Car
 
 ## Advanced Examples
 
-```ini
+```
 "Game Title"
 [Foo]
 00 - Bar
