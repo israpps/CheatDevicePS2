@@ -9,7 +9,7 @@ The Save Manager allows save files to be transferred between memory cards and a 
 
 - `CBS` - CodeBreaker Save. Uses ZLIB for compression.
 - `ZIP` - Standard ZIP File. Best for easy modification. [See note below](#note-about-zip-files)
-- `PSU` - EMS Adapter Save. Simple format that doesn't use any compression.
+- `PSU` - EMS Adapter Save. Simple format that doesn't use any compression. the most recommened one since it is also supported by wLaunchELF.
 - `MAX` - Action Replay MAX save. Only reading is supported.
 
 ## Known Bugs
