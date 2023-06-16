@@ -1,10 +1,10 @@
 <br />
-<p align="center">
+<p align="center" class="anim-fade-in">
   <a href="https://github.com/israpps/CheatDevicePS2">
     <img src="https://github.com/israpps/CheatDevicePS2/blob/master/resources/background.png?raw=true" alt="Logo" width="100%" height="auto">
   </a>
 
-  <p align="center">
+  <p align="center" class="anim-fade-up">
     Game enhancer for PlayStation 2 similar to Action Replay, GameShark, and CodeBreaker.
     <br />
     with EXFAT USB devices support
