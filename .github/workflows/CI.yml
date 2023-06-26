@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        exfat: ["EXFAT=0", "EXFAT=1"]
+        exfat: ["EXFAT=0", "EXFAT=1", "EXFAT=1 MX4SIO=1"]
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:v1.0
     steps:

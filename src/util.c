@@ -46,9 +46,14 @@ extern u8  _usbhdfsd_irx_start[];
 extern int _usbhdfsd_irx_size;
 #endif
 
+#ifdef MX4SIO
+extern u8  _mx4sio_bd_irx_start[];
+extern int _mx4sio_bd_irx_size;
+#endif
+
 void loadModules()
 {
-    int ret;
+    int ret, ID;
     DPRINTF("\n ** Loading main modules **\n");
 
     /* IOP reset routine taken from ps2rd */
@@ -84,26 +89,41 @@ void loadModules()
     sbv_patch_disable_prefix_check();
 
 #ifdef HOMEBREW_IRX
-    SifExecModuleBuffer(_sio2man_irx_start, _sio2man_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_padman_irx_start, _padman_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_mcman_irx_start, _mcman_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_mcserv_irx_start, _mcserv_irx_size, 0, NULL, &ret);
+    ID = SifExecModuleBuffer(_sio2man_irx_start, _sio2man_irx_size, 0, NULL, &ret);
+    DPRINTF("[SIO2MAN]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_padman_irx_start, _padman_irx_size, 0, NULL, &ret);
+    DPRINTF("[PADMAN]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_mcman_irx_start, _mcman_irx_size, 0, NULL, &ret);
+    DPRINTF("[MCMAN]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_mcserv_irx_start, _mcserv_irx_size, 0, NULL, &ret);
+    DPRINTF("[MCSERV]: ID=%d, ret=%d\n", ID, ret);
 #else
-    SifLoadModule("rom0:SIO2MAN", 0, NULL);
-    SifLoadModule("rom0:PADMAN", 0, NULL);
-    SifLoadModule("rom0:MCMAN", 0, NULL);
-    SifLoadModule("rom0:MCSERV", 0, NULL);
+    ID = SifLoadModule("rom0:SIO2MAN", 0, NULL);
+    DPRINTF("[SIO2MAN]: ID=%d\n", ID);
+    ID = SifLoadModule("rom0:PADMAN", 0, NULL);
+    DPRINTF("[PADMAN]: ID=%d\n", ID);
+    ID = SifLoadModule("rom0:MCMAN", 0, NULL);
+    DPRINTF("[MCMAN]: ID=%d\n", ID);
+    ID = SifLoadModule("rom0:MCSERV", 0, NULL);
+    DPRINTF("[MCSERV]: ID=%d\n", ID);
 #endif
-    SifExecModuleBuffer(_iomanX_irx_start, _iomanX_irx_size, 0, NULL, &ret);
+    ID = SifExecModuleBuffer(_iomanX_irx_start, _iomanX_irx_size, 0, NULL, &ret);
+    DPRINTF("[IOMANX]: ID=%d, ret=%d\n", ID, ret);
 #ifdef EXFAT
-    SifExecModuleBuffer(_bdm_irx_start,         _bdm_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_bdmfs_fatfs_irx_start, _bdmfs_fatfs_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbd_irx_start,        _usbd_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbmass_bd_irx_start,  _usbmass_bd_irx_size, 0, NULL, &ret);
+    ID = SifExecModuleBuffer(_bdm_irx_start, _bdm_irx_size, 0, NULL, &ret);
+    DPRINTF("[BDM]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_bdmfs_fatfs_irx_start, _bdmfs_fatfs_irx_size, 0, NULL, &ret);
+    DPRINTF("[BDM_FATFS]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_usbd_irx_start, _usbd_irx_size, 0, NULL, &ret);
+    DPRINTF("[USBD]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_usbmass_bd_irx_start, _usbmass_bd_irx_size, 0, NULL, &ret);
+    DPRINTF("[USBMASS]: ID=%d, ret=%d\n", ID, ret);
     sleep(3); // Allow USB devices some time to be detected
 #else
-    SifExecModuleBuffer(_usbd_irx_start, _usbd_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbhdfsd_irx_start, _usbhdfsd_irx_size, 0, NULL, &ret);
+    ID = SifExecModuleBuffer(_usbd_irx_start, _usbd_irx_size, 0, NULL, &ret);
+    DPRINTF("[USBD]: ID=%d, ret=%d\n", ID, ret);
+    ID = SifExecModuleBuffer(_usbhdfsd_irx_start, _usbhdfsd_irx_size, 0, NULL, &ret);
+    DPRINTF("[USBHDFSD]: ID=%d, ret=%d\n", ID, ret);
     sleep(2); // Allow USB devices some time to be detected
 #endif
 
@@ -114,6 +134,10 @@ void loadModules()
 #endif
 
     padInitialize();
+#ifdef MX4SIO
+    ID = SifExecModuleBuffer(_mx4sio_bd_irx_start, _mx4sio_bd_irx_size, 0, NULL, &ret);
+    DPRINTF("[MX4SIO_BD]: ID=%d, ret=%d\n", ID, ret);
+#endif
 }
 
 void handlePad()

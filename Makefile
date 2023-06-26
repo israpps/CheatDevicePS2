@@ -7,11 +7,16 @@ DTL_T10000 ?= 0
 EXFAT ?= 0
 HOMEBREW_IRX ?= 1 #wether to use or not homebrew IRX for pad, memcard and SIO2. if disabled. rom0: drivers will be used. wich is not a safe option. as it makes using the program on protokernel PS2 dangerous (at least for memcard I/O)
 PRINTF = NONE
+MX4SIO ?= 0
+
 RELDIR = release
-EE_BIN = CheatDevice$(HAS_EXFAT).ELF
+EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_MX4SIO).ELF
 # For minizip
 EE_CFLAGS += -DUSE_FILE32API
 
+SIO2MAN_PATH ?= $(PS2SDK)/iop/irx/freesio2.irx
+MCMAN_PATH   ?= $(PS2SDK)/iop/irx/mcman.irx
+MCSERV_PATH  ?= $(PS2SDK)/iop/irx/mcserv.irx
 # Helper libraries
 OBJS += src/libraries/upng.o src/libraries/ini.o \
     src/libraries/minizip/ioapi.o src/libraries/minizip/zip.o \
@@ -45,6 +50,21 @@ ifeq ($(EXFAT),1)
   IRX_OBJS += resources/bdm_irx.o resources/bdmfs_fatfs_irx.o resources/usbmass_bd_irx.o
 else
   IRX_OBJS += resources/usbhdfsd_irx.o
+endif
+
+ifeq ($(MX4SIO), 1)
+  ifeq ($(EXFAT),0)
+  $(error EXFAT is needed for MX4SIO Support)
+  endif
+  ifeq ($(HOMEBREW_IRX),0)
+  $(error homebrew IRX are needed for MX4SIO Support)
+  endif
+  SIO2MAN_PATH = iop/sio2man.irx
+  MCMAN_PATH   = iop/mcman.irx
+  MCSERV_PATH  = iop/mcserv.irx
+  EE_CFLAGS += -DMX4SIO
+  HAS_MX4SIO = -MX4SIO
+  IRX_OBJS += resources/mx4sio_bd.o
 endif
 
 # Graphic resources
@@ -98,12 +118,14 @@ else
 	bin2o $(PS2SDK)/iop/irx/usbhdfsd.irx resources/usbhdfsd_irx.o _usbhdfsd_irx
 endif
 ifeq ($(HOMEBREW_IRX),1)
-	bin2o $(PS2SDK)/iop/irx/freesio2.irx resources/sio2man_irx.o _sio2man_irx
-	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
-	bin2o $(PS2SDK)/iop/irx/mcserv.irx resources/mcserv_irx.o _mcserv_irx
+	bin2o $(SIO2MAN_PATH) resources/sio2man_irx.o _sio2man_irx
+	bin2o $(MCMAN_PATH) resources/mcman_irx.o _mcman_irx
+	bin2o $(MCSERV_PATH) resources/mcserv_irx.o _mcserv_irx
 	bin2o $(PS2SDK)/iop/irx/freepad.irx resources/padman_irx.o _padman_irx
 endif
-
+ifeq ($(MX4SIO),1)
+	bin2o iop/mx4sio_bd.irx resources/mx4sio_bd.o _mx4sio_bd_irx
+endif
 	@# Graphics
 	@bin2o resources/background.png resources/background_png.o _background_png
 	@bin2o resources/check.png resources/check_png.o _check_png
@@ -153,7 +175,7 @@ $(RELDIR): all
 	zip -q -9 $(RELDIR)/CheatDatabase.zip CheatDatabase.txt
 	cp CheatDevicePS2.ini LICENSE README.md $(RELDIR)
 	sed -i 's/CheatDatabase.txt/CheatDatabase.zip/g' $(RELDIR)/CheatDevicePS2.ini
-	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT).zip * extra_cheats/*.zip
+	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT)$(HAS_MX4SIO).zip * extra_cheats/*.zip
 
 clean:
 	rm -rf src/*.o src/libraries/*.o src/libraries/minizip/*.o src/saveformats/*.o $(EE_BIN) $(RELDIR)/$(EE_BIN)
