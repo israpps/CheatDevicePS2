@@ -1,7 +1,7 @@
 title: Cheat Device
 description: Game enhancer for PlayStation 2 similar to Action Replay, GameShark, and CodeBreaker
 
-remote_theme: israpps/dark-jekyll-rtd-theme
+remote_theme: rundocs/jekyll-rtd-theme
 # debug:
 #   compress: true
 #   dist: false
