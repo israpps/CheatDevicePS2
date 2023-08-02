@@ -1,5 +1,5 @@
 ---
-sort: 5
+sort: 6
 ---
 
 # Related Applications
@@ -20,7 +20,7 @@ Open source successor of pelvictrustman's mastercode finder. finds the hook code
 <a class="btn btn-outline" type="button" href="https://github.com/israpps/FreeMastercodeFinder/releases"> Download </a>
 
 
-## FreeMastercodeFinder
+## PS2 Pnach Converter
 
 Open source, both command line and Graphical interface cheat conversion tools. converts PCSX2 cheats into OPL/Cheat device cheat formats
 
