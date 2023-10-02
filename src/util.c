@@ -804,6 +804,7 @@ int displayPromptMenu(const char **items, int numItems, const char *header)
 
 int displayError(const char *error)
 {
+    DPUTS(error);
     const char *items[] = {"OK"};
     return displayPromptMenu(items, 1, error);
 }
