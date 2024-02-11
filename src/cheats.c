@@ -15,7 +15,7 @@
 #include "hash.h"
 #include "objectpool.h"
 #include "settings.h"
-
+extern char* error;
 static cheatsGame_t *gamesHead = NULL;
 static cheatsGame_t *activeGame = NULL;
 static hashTable_t *gameHashes = NULL; // game title -> cheatGames_t*
@@ -726,7 +726,6 @@ int cheatsOpenDatabase(const char* path, int readOnly)
     cheatDatabaseHandler_t *handler = getCheatDatabaseHandler(path);
     if(!handler)
     {
-        char error[255];
         sprintf(error, "Unsupported cheat database filetype: \"%s\"!", getFileExtension(path));
         displayError(error);
 
