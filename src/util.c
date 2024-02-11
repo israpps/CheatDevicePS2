@@ -18,37 +18,92 @@
 #include <libmc.h>
 #include <unistd.h>
 
-
+extern char* error;
+#define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
+#define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
+#define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
+#define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, NULL)
+#define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
 #ifdef HOMEBREW_IRX
-extern u8  _sio2man_irx_start[];
-extern int _sio2man_irx_size;
-extern u8  _mcman_irx_start[];
-extern int _mcman_irx_size;
-extern u8  _mcserv_irx_start[];
-extern int _mcserv_irx_size;
-extern u8  _padman_irx_start[];
-extern int _padman_irx_size;
+EXTERN_BIN2O(_sio2man_irx)
+EXTERN_BIN2O(_mcman_irx)
+EXTERN_BIN2O(_mcserv_irx);
+EXTERN_BIN2O(_padman_irx);
 #endif
-extern u8  _iomanX_irx_start[];
-extern int _iomanX_irx_size;
-extern u8  _usbd_irx_start[];
-extern int _usbd_irx_size;
+EXTERN_BIN2O(_usbd_irx);
+EXTERN_BIN2O(_iomanX_irx);
 
 #ifdef EXFAT
-extern u8  _bdm_irx_start[];
-extern int _bdm_irx_size;
-extern u8  _bdmfs_fatfs_irx_start[];
-extern int _bdmfs_fatfs_irx_size;
-extern u8  _usbmass_bd_irx_start[];
-extern int _usbmass_bd_irx_size;
+EXTERN_BIN2O(_bdm_irx);
+EXTERN_BIN2O(_bdmfs_fatfs_irx);
+EXTERN_BIN2O(_usbmass_bd_irx);
 #else
-extern u8  _usbhdfsd_irx_start[];
-extern int _usbhdfsd_irx_size;
+EXTERN_BIN2O(_usbhdfsd_irx);
 #endif
 
-void loadModules()
+#ifdef FILEXIO
+#include <fileXio_rpc.h>
+EXTERN_BIN2O(_filexio_irx);
+#endif
+
+#ifdef DEV9
+EXTERN_BIN2O(_ps2dev9_irx);
+#endif
+
+#ifdef HDD
+#include <usbhdfsd-common.h>
+#include <hdd-ioctl.h>
+#include <libpwroff.h>
+void poweroffCallback(void *arg);
+extern int HDD_USABLE;
+EXTERN_BIN2O(_poweroff_irx);
+EXTERN_BIN2O(_ps2atad_irx);
+EXTERN_BIN2O(_ps2hdd_irx);
+EXTERN_BIN2O(_ps2fs_irx);
+static int CheckHDD(void) {
+    int ret = fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0);
+    /* 0 = HDD connected and formatted, 1 = not formatted, 2 = HDD not usable, 3 = HDD not connected. */
+    DPRINTF("%s: HDD status is %d\n", __func__, ret);
+    return ret;
+}
+char* HDDerr(const int err) {
+    switch (err)
+    {
+    case 1:
+        return "HDD is not formatted";
+        break;
+
+    case 2:
+        return "HDD is not usable";
+        break;
+    case 3:
+        return "HDD is not connected";
+        break;
+    case -19:
+        return "\"No such device\"";
+        break;
+    case -5:
+        return "\"I/O ERROR\"";
+        break;
+    default:
+        return "Unknown error";
+        break;
+    }
+}
+void poweroffCallback(void *arg)
 {
-    int ret;
+    fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0);
+    while (fileXioDevctl("dev9x:", DDIOC_OFF, NULL, 0, NULL, 0) < 0) {};
+    // As required by some (typically 2.5") HDDs, issue the SCSI STOP UNIT command to avoid causing an emergency park.
+    fileXioDevctl("mass:", USBMASS_DEVCTL_STOP_ALL, NULL, 0, NULL, 0);
+    /* Power-off the PlayStation 2. */
+    poweroffShutdown();
+}
+#endif
+
+int loadModules(int booting_from_hdd)
+{
+    int ID, RET, HDDSTAT, filexio_loaded=0, dev9_loaded=0;
     DPRINTF("\n ** Loading main modules **\n");
 
     /* IOP reset routine taken from ps2rd */
@@ -82,28 +137,41 @@ void loadModules()
 
     sbv_patch_enable_lmb();
     sbv_patch_disable_prefix_check();
+    LOAD_IRX_BUF_SILENT(_iomanX_irx);
+#ifdef FILEXIO
+    if (booting_from_hdd) {
+        ID = LOAD_IRX_BUF_NARG(_filexio_irx, &RET);
+        filexio_loaded = IRX_LOAD_SUCCESS();
+        if (filexio_loaded) fileXioInit(); else sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "FILEXIO.IRX", ID, RET);
+    }
+#endif
+#ifdef DEV9
+    if (booting_from_hdd) {
+        ID = LOAD_IRX_BUF_NARG(_ps2dev9_irx, &RET);
+        dev9_loaded = IRX_LOAD_SUCCESS();
+    }
+#endif
 
 #ifdef HOMEBREW_IRX
-    SifExecModuleBuffer(_sio2man_irx_start, _sio2man_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_padman_irx_start, _padman_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_mcman_irx_start, _mcman_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_mcserv_irx_start, _mcserv_irx_size, 0, NULL, &ret);
+    LOAD_IRX_BUF_SILENT(_sio2man_irx);
+    LOAD_IRX_BUF_SILENT(_padman_irx);
+    LOAD_IRX_BUF_SILENT(_mcman_irx);
+    LOAD_IRX_BUF_SILENT(_mcserv_irx);
 #else
     SifLoadModule("rom0:SIO2MAN", 0, NULL);
     SifLoadModule("rom0:PADMAN", 0, NULL);
     SifLoadModule("rom0:MCMAN", 0, NULL);
     SifLoadModule("rom0:MCSERV", 0, NULL);
 #endif
-    SifExecModuleBuffer(_iomanX_irx_start, _iomanX_irx_size, 0, NULL, &ret);
 #ifdef EXFAT
-    SifExecModuleBuffer(_bdm_irx_start,         _bdm_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_bdmfs_fatfs_irx_start, _bdmfs_fatfs_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbd_irx_start,        _usbd_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbmass_bd_irx_start,  _usbmass_bd_irx_size, 0, NULL, &ret);
+    LOAD_IRX_BUF_SILENT(_bdm_irx);
+    LOAD_IRX_BUF_SILENT(_bdmfs_fatfs_irx);
+    LOAD_IRX_BUF_SILENT(_usbd_irx);
+    LOAD_IRX_BUF_SILENT(_usbmass_bd_irx);
     sleep(3); // Allow USB devices some time to be detected
 #else
-    SifExecModuleBuffer(_usbd_irx_start, _usbd_irx_size, 0, NULL, &ret);
-    SifExecModuleBuffer(_usbhdfsd_irx_start, _usbhdfsd_irx_size, 0, NULL, &ret);
+    LOAD_IRX_BUF_SILENT(_usbd_irx);
+    LOAD_IRX_BUF_SILENT(_usbhdfsd_irx);
     sleep(2); // Allow USB devices some time to be detected
 #endif
 
@@ -114,6 +182,59 @@ void loadModules()
 #endif
 
     padInitialize();
+
+#ifdef HDD
+    if (booting_from_hdd) {
+        //static const char pfsarg[] = "-n\0" "24\0" "-o\0" "8";
+        if (!filexio_loaded) {
+                return -2;
+        }
+        if (dev9_loaded) {
+            ID = LOAD_IRX_BUF_NARG(_poweroff_irx, &RET);
+            DPRINTF(" [POWEROFF]: ret=%d, ID=%d\n", RET, ID);
+            if (!IRX_LOAD_SUCCESS()) {
+                sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "POWEROFF.IRX", ID, RET);
+                return -2;
+            }
+
+            poweroffInit();
+            poweroffSetCallback(&poweroffCallback, NULL);
+            DPRINTF("PowerOFF Callback installed...\n");
+
+            ID = LOAD_IRX_BUF_NARG(_ps2atad_irx, &RET);
+            DPRINTF(" [ATAD]: ret=%d, ID=%d\n", RET, ID);
+            if (!IRX_LOAD_SUCCESS()) {
+                sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "ATAD.IRX", ID, RET);
+                return -3;
+            }
+
+            static const char hddarg[] = "-o" "\0" "4" "\0" "-n" "\0" "20";
+            ID = LOAD_IRX_BUF(_ps2hdd_irx, sizeof(hddarg), hddarg, &RET);
+            DPRINTF(" [PS2HDD]: ret=%d, ID=%d\n", RET, ID);
+            if (!IRX_LOAD_SUCCESS()) {
+                sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "PS2HDD.IRX", ID, RET);
+                return -4;
+            }
+
+            HDDSTAT = CheckHDD();
+            HDD_USABLE = HDDSTAT != 0;
+
+            /* PS2FS.IRX */
+            if (HDD_USABLE)
+            {
+                ID = LOAD_IRX_BUF_NARG(_ps2fs_irx, &RET);
+                DPRINTF(" [PS2FS]: ret=%d, ID=%d\n", RET, ID);
+                if (!IRX_LOAD_SUCCESS()) {
+                    sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "PS2FS.IRX", ID, RET);
+                    return -5;
+                }
+            } else {
+                sprintf(error, "HDD Init Error:\nHDD Status: %d (%s)", HDDSTAT, HDDerr(HDDSTAT));
+            }
+        }
+    }
+#endif
+    return 0;
 }
 
 void handlePad()
