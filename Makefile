@@ -8,7 +8,7 @@ EXFAT ?= 0
 HOMEBREW_IRX ?= 1 #wether to use or not homebrew IRX for pad, memcard and SIO2. if disabled. rom0: drivers will be used. wich is not a safe option. as it makes using the program on protokernel PS2 dangerous (at least for memcard I/O)
 PRINTF = NONE
 RELDIR = release
-EE_BIN = CheatDevice$(HAS_EXFAT).ELF
+EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD).ELF
 # For minizip
 EE_CFLAGS += -DUSE_FILE32API
 
@@ -46,6 +46,27 @@ ifeq ($(EXFAT),1)
 else
   IRX_OBJS += resources/usbhdfsd_irx.o
 endif
+
+ifeq ($(HDD), 1)
+  EE_LIBS += -lpoweroff
+  IRX_OBJS += resources/ps2fs_irx.o resources/ps2hdd_irx.o resources/ps2atad_irx.o resources/poweroff_irx.o
+  EE_CFLAGS += -DHDD
+  FILEXIO_NEED = 1
+  DEV9_NEED = 1
+  HAS_HDD = -HDD
+endif
+
+ifeq ($(FILEXIO_NEED), 1)
+  EE_CFLAGS += -DFILEXIO
+  EE_LIBS += -lfileXio
+  IRX_OBJS += resources/filexio_irx.o
+endif
+
+ifeq ($(DEV9_NEED), 1)
+  EE_CFLAGS += -DDEV9
+  IRX_OBJS += resources/ps2dev9_irx.o
+endif
+
 
 # Graphic resources
 OBJS += resources/background_png.o \
@@ -102,6 +123,18 @@ ifeq ($(HOMEBREW_IRX),1)
 	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
 	bin2o $(PS2SDK)/iop/irx/mcserv.irx resources/mcserv_irx.o _mcserv_irx
 	bin2o $(PS2SDK)/iop/irx/freepad.irx resources/padman_irx.o _padman_irx
+endif
+ifeq ($(FILEXIO_NEED), 1)
+	bin2o $(PS2SDK)/iop/irx/fileXio.irx resources/filexio_irx.o _filexio_irx
+endif
+ifeq ($(DEV9_NEED), 1)
+	bin2o $(PS2SDK)/iop/irx/ps2dev9.irx resources/ps2dev9_irx.o _ps2dev9_irx
+endif
+ifeq ($(HDD), 1)
+	bin2o $(PS2SDK)/iop/irx/ps2fs.irx resources/ps2fs_irx.o _ps2fs_irx
+	bin2o $(PS2SDK)/iop/irx/ps2hdd-osd.irx resources/ps2hdd_irx.o _ps2hdd_irx
+	bin2o $(PS2SDK)/iop/irx/ps2atad.irx resources/ps2atad_irx.o _ps2atad_irx
+	bin2o $(PS2SDK)/iop/irx/poweroff.irx resources/poweroff_irx.o _poweroff_irx
 endif
 
 	@# Graphics
