@@ -38,7 +38,14 @@ int main(int argc, char *argv[])
         if ((mtret=fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR)) < 0) {
             sprintf(error, "Error: failed to mount partition \"%s\"!\nerr:%d (0x%x)", MountPoint, mtret, mtret);
         } else {
-            DPRINTF("Successful HDD boot. mounted %s as pfs0 and cwd set to %s\n", MountPoint, pfspath);
+            DPRINTF("Successful HDD boot. mounted %s as pfs0\n", MountPoint);
+            char* B = strrchr(pfspath, '/');
+            if (B!=NULL) { //the path includes folders inside the PFS filesystem?
+                pfspath[(B-PATH+1)]=0; //null terminate after the last '/', where the elf filename should begin?
+            } else {
+                pfspath = "pfs:";
+            }
+            DPRINTF("chdir: '%s'\n", pfspath);
             chdir(pfspath);
         }
         
