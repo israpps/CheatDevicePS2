@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
             DPRINTF("Successful HDD boot. mounted %s as pfs0\n", MountPoint);
             char* B = strrchr(pfspath, '/');
             if (B!=NULL) { //the path includes folders inside the PFS filesystem?
-                pfspath[(B-PATH+1)]=0; //null terminate after the last '/', where the elf filename should begin?
+                pfspath[(B-pfspath+1)]=0; //null terminate after the last '/', where the elf filename should begin?
             } else {
                 pfspath = "pfs:";
             }
