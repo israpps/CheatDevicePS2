@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
             if (B!=NULL) { //the path includes folders inside the PFS filesystem?
                 pfspath[(B-pfspath+1)]=0; //null terminate after the last '/', where the elf filename should begin?
             } else {
-                pfspath = "pfs:";
+                strcpy(pfspath, "pfs:");
             }
             DPRINTF("chdir: '%s'\n", pfspath);
             chdir(pfspath);
