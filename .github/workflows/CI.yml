@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         exfat: ["EXFAT=0", "EXFAT=1"]
+        hdd: ["HDD=0", "HDD=1"]
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:v1.0
     steps:
@@ -27,7 +28,7 @@ jobs:
 
     - name: Compile cheat device
       run: |
-        make rebuild release ${{ matrix.exfat }}
+        make rebuild release ${{ matrix.exfat }} ${{ matrix.hdd }}
 
     - name: list
       run: |
