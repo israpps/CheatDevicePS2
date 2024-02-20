@@ -28,8 +28,10 @@ int main(int argc, char *argv[])
     printf("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
     DPRINTF("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
     initGraphics();
-
-
+#ifndef NO_DPRINTF
+    for (ret=0;ret<argc;ret++) DPRINTF("argv[%d]: '%s'", ret, argv[ret];
+    ret = 0;
+#endif
     int booting_from_hdd = 0;
     #ifdef HDD
     DPRINTF("Checking if booting from HDD\n");
