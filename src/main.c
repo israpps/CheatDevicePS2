@@ -23,16 +23,16 @@ char pfspath[64];
 char error[255];
 int main(int argc, char *argv[])
 {
-
+    DPRINTF_INIT();
     int ret = 0;
     printf("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
     DPRINTF("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
     initGraphics();
 
-    DPRINTF_INIT();
 
     int booting_from_hdd = 0;
     #ifdef HDD
+    DPRINTF("Checking if booting from HDD\n");
     if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
     DPRINTF("Booting from hdd:%d\n", booting_from_hdd);
     char* BUF = NULL;
