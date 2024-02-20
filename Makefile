@@ -47,6 +47,13 @@ else
   IRX_OBJS += resources/usbhdfsd_irx.o
 endif
 
+ifeq ($(COH),1)
+  EE_CFLAGS += -DSUPPORT_SYSTEM_2x6
+  EE_LIBS += -liopreboot
+  HAS_COH = -COH
+  HOMEBREW_IRX = 0
+  EE_OBJS += ioprp.o
+endif
 # Graphic resources
 OBJS += resources/background_png.o \
     resources/check_png.o resources/hamburgerIcon_png.o resources/gamepad_png.o resources/cube_png.o \
@@ -63,10 +70,12 @@ OBJS += engine/engine_erl.o
 OBJS += bootstrap/bootstrap_elf.o
 
 ifeq ($(HOMEBREW_IRX),1)
-	EE_LIBS += -lpadx
-	EE_CFLAGS += -DHOMEBREW_IRX
+	   += -lpadx
+  EE_CFLAGS += -DHOMEBREW_IRX
+else ifeq ($(COH),1)#Because on COH, rom0:PADMAN has the RPC style of retail rom0:XPADMAN
+  EE_LIBS += -lpadx
 else
-	EE_LIBS += -lpad
+  EE_LIBS += -lpad
 endif
 ifeq ($(DTL_T10000),1)
 	EE_CFLAGS += -D_DTL_T10000 -g
@@ -162,6 +171,10 @@ clean:
 	cd bootstrap && make clean
 
 rebuild: clean all
+
+ioprp.o: iop/IOPRP_FILEIO.IMG
+	@bin2o $< $@ _ioprp_img
+
 
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal

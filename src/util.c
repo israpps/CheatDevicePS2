@@ -46,6 +46,12 @@ extern u8  _usbhdfsd_irx_start[];
 extern int _usbhdfsd_irx_size;
 #endif
 
+#ifdef SUPPORT_SYSTEM_2X6
+#include <iopcontrol_special.h>
+extern u8  _ioprp_img[];
+extern int _ioprp_img_size;
+#endif
+
 void loadModules()
 {
     int ret;
@@ -56,8 +62,10 @@ void loadModules()
 
     #ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
+    #elif SUPPORT_SYSTEM_2X6
+    while (!SifIopRebootBuffer(_ioprp_img, _ioprp_img_size));
     #else
-    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0));
+    while (!SifIopReset("", 0));
     #endif
     while (!SifIopSync());
 
@@ -84,6 +92,9 @@ void loadModules()
     sbv_patch_disable_prefix_check();
 
 #ifdef HOMEBREW_IRX
+#ifdef SUPPORT_SYSTEM_2X6
+#error Namco system 2x6 enabled, homebrew MCMAN cannot be used
+#endif
     SifExecModuleBuffer(_sio2man_irx_start, _sio2man_irx_size, 0, NULL, &ret);
     SifExecModuleBuffer(_padman_irx_start, _padman_irx_size, 0, NULL, &ret);
     SifExecModuleBuffer(_mcman_irx_start, _mcman_irx_size, 0, NULL, &ret);
@@ -107,7 +118,7 @@ void loadModules()
     sleep(2); // Allow USB devices some time to be detected
 #endif
 
-#ifdef HOMEBREW_IRX
+#if defined(HOMEBREW_IRX) || defined(SUPPORT_SYSTEM_2X6)
     mcInit(MC_TYPE_XMC);
 #else
     mcInit(MC_TYPE_MC);
