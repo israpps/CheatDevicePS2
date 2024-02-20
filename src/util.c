@@ -217,7 +217,7 @@ int loadModules(int booting_from_hdd)
             }
 
             HDDSTAT = CheckHDD();
-            HDD_USABLE = HDDSTAT != 0;
+            HDD_USABLE = HDDSTAT == 0;
 
             /* PS2FS.IRX */
             if (HDD_USABLE)
