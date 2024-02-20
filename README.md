@@ -14,6 +14,8 @@
 
 ### DOWNLOADS:
 
-<a class="btn btn-outline" type="button" href="https://github.com/israpps/CheatDevicePS2/releases/download/latest/CheatDevicePS2-EXFAT.zip">EXFat support version</a>
-
 <a class="btn btn-outline" type="button" href="https://github.com/israpps/CheatDevicePS2/releases/download/latest/CheatDevicePS2.zip">Classic version</a>
+
+<a class="btn btn-outline" type="button" href="https://github.com/israpps/CheatDevicePS2/releases/download/latest/CheatDevicePS2-EXFAT.zip">EXFAT USB support version</a>
+
+<a class="btn btn-outline" type="button" href="https://github.com/israpps/CheatDevicePS2/releases/download/latest/CheatDevicePS2-HDD.zip">Internal HDD support version</a>
