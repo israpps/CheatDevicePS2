@@ -86,8 +86,19 @@ static void* loadBootstrap()
     return (void *)eh->entry;
 }
 
+
+#ifdef HDD
+int getMountInfo(char *path, char *mountString, char *mountPoint, char *newCWD);
+#include <fileXio_rpc.h>
+extern int booting_from_hdd;
+#endif
+
+
 void startgameExecute(const char *path)
 {
+#ifdef HDD
+    int run_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
+#endif
     static char boot2[100];
     
     if(strcmp(path, "==Disc==") == 0)
@@ -141,6 +152,25 @@ void startgameExecute(const char *path)
             line = strtok(NULL, "\n");
         }
     }
+#ifdef HDD
+    else if (run_from_hdd) {
+        char mntpath[64], pfspath[100];
+        if (getMountInfo(path, NULL, mntpath, pfspath)) {
+            if (booting_from_hdd) {
+                DPRINTF("booting from HDD, unounting pfs before proceeding\n");
+                int x = fileXioUmount("pfs:");
+                DPRINTF("fileXioUmount:%d\n", x);
+            }
+            int mtret=0;
+            if ((mtret=fileXioMount("pfs0:", mntpath, FIO_MT_RDONLY)) < 0) {
+                DPRINTF("Error: failed to mount partition \"%s\"!\nerr:%d (0x%x)", mntpath, mtret, mtret);
+            } else {
+                strncpy(boot2, pfspath, 100);
+                DPRINTF("boot2: '%s'\n", boot2);
+            }
+        }
+    }
+#endif
     else
     {
         strncpy(boot2, path, 100);
