@@ -27,7 +27,7 @@ jobs:
 
     - name: Compile cheat device
       run: |
-        make rebuild release ${{ matrix.opts }}
+        make rebuild release ${{ matrix.opts }} --trace
 
     - name: list
       run: |
