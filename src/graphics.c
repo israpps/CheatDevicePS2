@@ -852,7 +852,16 @@ void graphicsDrawAboutPage()
         "Cheat Device " GIT_VERSION "\n"
         "Compiled " __DATE__ " " __TIME__ "\n"
         "\n"
-        "EXFAT support and minor tweaks by El_isra\n"
+        "Created by wesley castro, maintained by El_isra\n"
+#ifdef EXFAT
+"EXFAT:1 "
+#endif
+#ifdef HDD
+"HDD:1"
+#endif
+#if defined(EXFAT) || defined(HDD)
+        "\n"
+#endif
         "\n"
         "Total Games: %d\n"
         "Total Cheats: %d\n"

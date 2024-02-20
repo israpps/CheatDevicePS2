@@ -35,7 +35,7 @@
 *((unsigned char *)address + 3) = (value & 0xff000000) >> 24;
 
 // Reset the IOP and load initial modules.
-void loadModules();
+int loadModules(int booting_from_hdd);
 
 // Change the menu state in response to gamepad input.
 void handlePad();
