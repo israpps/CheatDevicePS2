@@ -19,7 +19,7 @@ Settings are stored in a file named `CheatDevicePS2.ini` in the directory Cheat 
 |boot4|ELF file path|`rom:OSDSYS`|
 
 ```note
-Paths to files on `mass:`, `mc0:`, `mc1:`, `host:`, `rom:`, and `cdrom:` can be used. If no device specifier is given in the path (e.g. `launcher.elf`), the file is assumed to be a relative path based in the directory Cheat Device was launched from. Loading files from the hard drive (`pfsX:`) is not supported.
+Paths to files on `mass:`, `mc0:`, `mc1:`, `host:`, `rom:`, and `cdrom:` can be used. If no device specifier is given in the path (e.g. `launcher.elf`), the file is assumed to be a relative path based in the directory Cheat Device was launched from. Loading files from internal HDD is only possible from the same partition where cheat device is stored (path is `pfs0:`, or just use relative paths)
 ```
 ```note
 A list of file formats supported by the `databaseReadOnly` and `databaseReadWrite` options can be found [here](./Cheats.md).
