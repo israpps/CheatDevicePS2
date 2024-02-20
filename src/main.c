@@ -23,13 +23,26 @@ char pfspath[64];
 char error[255];
 int main(int argc, char *argv[])
 {
+
+    int ret = 0;
+    printf("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
+    DPRINTF("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
+    initGraphics();
+
+    DPRINTF_INIT();
+
     int booting_from_hdd = 0;
     #ifdef HDD
     if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
-    
+    DPRINTF("Booting from hdd:%d\n", booting_from_hdd);
     char* BUF = NULL;
     BUF = strdup(argv[0]); //use strdup, otherwise, path will become `hdd0:`
+    if (BUF==NULL) {
+        DPRINTF("Could not strdup()\n");
+    }
     if (getMountInfo(BUF, NULL, MountPoint, pfspath)) {
+        
+    DPRINTF("MountPoint '%s'\npfspath '%s'\n", MountPoint, pfspath);
     char *pos = strrchr(pfspath, '/');
     if (pos != NULL) {
         pos++;
@@ -37,11 +50,13 @@ int main(int argc, char *argv[])
         int mtret=0;
         if ((mtret=fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR)) < 0) {
             sprintf(error, "Error: failed to mount partition \"%s\"!\nerr:%d (0x%x)", MountPoint, mtret, mtret);
+            DPRINTF(error);
         } else {
             DPRINTF("Successful HDD boot. mounted %s as pfs0\n", MountPoint);
             char* B = strrchr(pfspath, '/');
             if (B!=NULL) { //the path includes folders inside the PFS filesystem?
                 pfspath[(B-pfspath+1)]=0; //null terminate after the last '/', where the elf filename should begin?
+                DPRINTF("boot path is not root of pfs\n");
             } else {
                 strcpy(pfspath, "pfs:");
             }
@@ -52,11 +67,6 @@ int main(int argc, char *argv[])
     } else displayError("Error processing HDD boot path");
     } else displayError("Error processing HDD boot path");
     #endif
-    int ret = 0;
-    DPRINTF_INIT();
-    printf("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
-    DPRINTF("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
-    initGraphics();
     
     ret = loadModules(booting_from_hdd);
     if (ret != 0) displayError(error);
