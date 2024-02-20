@@ -11,6 +11,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef SUPPORT_SYSTEM_2X6
+#include <iopcontrol_special.h>
+extern u8  _ioprp_img[];
+extern int _ioprp_img_size;
+#endif
+
 /* Debug colors. Now NTSC Safe! At least I believe they are... */
 int red = 0x1010B4; /* RED: Opening elf */
 int green = 0x10B410; /* GREEN: Reading elf */
@@ -174,13 +180,11 @@ void MyLoadElf(char *elfpath)
     /* IOP reboot routine from ps2rd */
     SifInitRpc(0);
 #ifdef SUPPORT_SYSTEM_2X6
-    while (!SifIopReset("", 0));
+    while (!SifIopRebootBuffer(_ioprp_img, _ioprp_img_size));
 #else
-    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0))
-        ;
+    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0));
 #endif
-    while (!SifIopSync())
-        ;
+    while (!SifIopSync());
 
     /* exit services */
     fioExit();
