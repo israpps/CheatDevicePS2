@@ -167,10 +167,10 @@ endif
 	@bin2o engine/engine.erl engine/engine_erl.o _engine_erl
 
 bootstrap/bootstrap.elf:
-	$(MAKE) -C bootstrap
+	cd bootstrap && $(MAKE)
 
 bootstrap/bootstrap_elf.o: bootstrap/bootstrap.elf ioprp.o
-	@bin2o bootstrap/bootstrap.elf $@ _bootstrap_elf
+	@bin2o bootstrap/bootstrap.elf bootstrap/bootstrap_elf.o  _bootstrap_elf
 
 version:
 	@echo -n '#define GIT_VERSION "'> src/version.h
