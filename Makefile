@@ -166,9 +166,8 @@ endif
 
 version:
 	@echo -n '#define GIT_VERSION "'> src/version.h
-	@git describe | tr -d '\n'>> src/version.h
+	@git rev-parse --short HEAD | tr -d '\n'>> src/version.h
 	@echo '"'>> src/version.h
-
 
 main: $(EE_BIN)
 
