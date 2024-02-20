@@ -20,6 +20,8 @@ int HDD_USABLE = 0;
 char MountPoint[40];
 char pfspath[64];
 #endif
+
+int booting_from_hdd = 0;
 char error[255];
 int main(int argc, char *argv[])
 {
@@ -32,7 +34,6 @@ int main(int argc, char *argv[])
     for (ret=0;ret<argc;ret++) {DPRINTF("argv[%d]: '%s'\n", ret, argv[ret]);}
     ret = 0;
 #endif
-    int booting_from_hdd = 0;
 #ifdef HDD
     DPRINTF("Checking if booting from HDD\n");
     if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
