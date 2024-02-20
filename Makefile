@@ -32,13 +32,6 @@ ifeq ($(HOMEBREW_IRX),1)
   IRX_OBJS += resources/sio2man_irx.o resources/mcman_irx.o resources/mcserv_irx.o resources/padman_irx.o
 endif
 
-ifeq ($(PRINTF),EE_SIO)
-  EE_CFLAGS += -DEE_SIO
-endif
-ifeq ($(PRINTF),COMMON)
-  EE_CFLAGS += -DCOMMON_PRINTF
-endif
-
 ifeq ($(EXFAT),1)
   EE_CFLAGS += -DEXFAT
   HAS_EXFAT = -EXFAT
@@ -197,6 +190,13 @@ clean:
 	cd bootstrap && make clean
 
 rebuild: clean all
+
+ifeq ($(PRINTF),EE_SIO)
+  EE_CFLAGS += -DEE_SIO
+endif
+ifeq ($(PRINTF),COMMON)
+  EE_CFLAGS += -DCOMMON_PRINTF
+endif
 
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal
