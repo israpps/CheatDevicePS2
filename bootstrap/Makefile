@@ -7,9 +7,6 @@ ifeq ($(COH),1)
   EE_OBJS += ../ioprp.o
 endif
 
-../ioprp.o: ../iop/IOPRP_FILEIO.IMG
-	@bin2o $< $@ _ioprp_img
-
 #EE_LDFLAGS = -s -Ttext 0x00090000
 #EE_LDFLAGS = -s -Ttext 0x01900000
 #EE_LDFLAGS = -s -Ttext 0x000F3000
@@ -35,6 +32,9 @@ all: $(EE_BIN)
 
 clean:
 	rm -f *.o *.s *.elf
+
+../ioprp.o: ../iop/IOPRP_FILEIO.IMG
+	@bin2o $< $@ _ioprp_img
 
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal
