@@ -29,11 +29,11 @@ int main(int argc, char *argv[])
     DPRINTF("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
     initGraphics();
 #ifndef NO_DPRINTF
-    for (ret=0;ret<argc;ret++) {DPRINTF("argv[%d]: '%s'", ret, argv[ret]);}
+    for (ret=0;ret<argc;ret++) {DPRINTF("argv[%d]: '%s'\n", ret, argv[ret]);}
     ret = 0;
 #endif
     int booting_from_hdd = 0;
-    #ifdef HDD
+#ifdef HDD
     DPRINTF("Checking if booting from HDD\n");
     if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
     DPRINTF("Booting from hdd:%d\n", booting_from_hdd);
@@ -49,29 +49,33 @@ int main(int argc, char *argv[])
     if (pos != NULL) {
         pos++;
         *pos = '\0';
+        char* B = strrchr(pfspath, '/');
+        if (B!=NULL) { //the path includes folders inside the PFS filesystem?
+            pfspath[(B-pfspath+1)]=0; //null terminate after the last '/', where the elf filename should begin?
+            DPRINTF("boot path is not root of pfs\n");
+        } else {
+            strcpy(pfspath, "pfs:");
+        }
+        DPRINTF("chdir: '%s'\n", pfspath);
+        chdir(pfspath);
+    } else displayError("Error processing HDD boot path (2)");
+    } else displayError("Error processing HDD boot path (1)");
+#endif
+    
+    ret = loadModules(booting_from_hdd);
+    if (ret != 0) displayError(error);
+#ifdef HDD
+    if (ret == 0) {
         int mtret=0;
         if ((mtret=fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR)) < 0) {
             sprintf(error, "Error: failed to mount partition \"%s\"!\nerr:%d (0x%x)", MountPoint, mtret, mtret);
             DPRINTF(error);
+            displayError(error);
         } else {
             DPRINTF("Successful HDD boot. mounted %s as pfs0\n", MountPoint);
-            char* B = strrchr(pfspath, '/');
-            if (B!=NULL) { //the path includes folders inside the PFS filesystem?
-                pfspath[(B-pfspath+1)]=0; //null terminate after the last '/', where the elf filename should begin?
-                DPRINTF("boot path is not root of pfs\n");
-            } else {
-                strcpy(pfspath, "pfs:");
-            }
-            DPRINTF("chdir: '%s'\n", pfspath);
-            chdir(pfspath);
         }
-        
-    } else displayError("Error processing HDD boot path");
-    } else displayError("Error processing HDD boot path");
-    #endif
-    
-    ret = loadModules(booting_from_hdd);
-    if (ret != 0) displayError(error);
+    }
+#endif
     initSettings();
     initMenus();
     
