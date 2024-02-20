@@ -8,7 +8,7 @@ EXFAT ?= 0
 HOMEBREW_IRX ?= 1 #wether to use or not homebrew IRX for pad, memcard and SIO2. if disabled. rom0: drivers will be used. wich is not a safe option. as it makes using the program on protokernel PS2 dangerous (at least for memcard I/O)
 PRINTF = NONE
 RELDIR = release
-EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD).ELF
+EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD)$(HAS_COH).ELF
 # For minizip
 EE_CFLAGS += -DUSE_FILE32API
 
@@ -186,7 +186,7 @@ $(RELDIR): all
 	zip -q -9 $(RELDIR)/CheatDatabase.zip CheatDatabase.txt
 	cp CheatDevicePS2.ini LICENSE README.md $(RELDIR)
 	sed -i 's/CheatDatabase.txt/CheatDatabase.zip/g' $(RELDIR)/CheatDevicePS2.ini
-	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT)$(HAS_HDD).zip * extra_cheats/*.zip
+	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT)$(HAS_HDD)$(HAS_COH).zip * extra_cheats/*.zip
 
 clean:
 	rm -rf src/*.o src/libraries/*.o src/libraries/minizip/*.o src/saveformats/*.o $(EE_BIN) $(RELDIR)/$(EE_BIN)
