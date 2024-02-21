@@ -179,11 +179,7 @@ void MyLoadElf(char *elfpath)
 
     /* IOP reboot routine from ps2rd */
     SifInitRpc(0);
-#ifdef SUPPORT_SYSTEM_2X6
-    while (!SifIopRebootBuffer(_ioprp_img, _ioprp_img_size));
-#else
-    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0));
-#endif
+    while (!SifIopReset("", 0));
     while (!SifIopSync());
 
     /* exit services */

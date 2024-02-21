@@ -1,12 +1,12 @@
 EE_BIN = bootstrap.elf
 EE_OBJS = main.o
 
-ifeq ($(COH),1)
-  EE_LIBS += -lpatches
-  EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
-  EE_LIBS += -liopreboot
-  EE_OBJS += ../ioprp.o
-endif
+#ifeq ($(COH),1)
+#  EE_LIBS += -lpatches
+#  EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
+#  EE_LIBS += -liopreboot
+#  EE_OBJS += ../ioprp.o
+#endif
 
 #EE_LDFLAGS = -s -Ttext 0x00090000
 #EE_LDFLAGS = -s -Ttext 0x01900000
