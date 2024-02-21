@@ -11,6 +11,7 @@
 #include "settings.h"
 #include "dbgprintf.h"
 #include "util.h"
+char prog[255];
 
 #ifdef HDD
 int getMountInfo(char *path, char *mountString, char *mountPoint, char *newCWD);
@@ -77,7 +78,9 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+    ON_SCREEN_INIT_PROGRESS("Initialize settings");
     initSettings();
+    ON_SCREEN_INIT_PROGRESS("Initialize menu");
     initMenus();
     
     char *readOnlyPath = settingsGetReadOnlyDatabasePath();
