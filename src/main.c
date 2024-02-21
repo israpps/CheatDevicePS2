@@ -10,7 +10,6 @@
 #include "cheats.h"
 #include "settings.h"
 #include "dbgprintf.h"
-char prog[255];
 #include "util.h"
 char prog[255];
 
