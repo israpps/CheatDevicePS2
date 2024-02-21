@@ -161,7 +161,7 @@ ifeq ($(HDD), 1)
 	bin2o $(PS2SDK)/iop/irx/ps2atad.irx resources/ps2atad_irx.o _ps2atad_irx
 	bin2o $(PS2SDK)/iop/irx/poweroff.irx resources/poweroff_irx.o _poweroff_irx
 endif
-	@bin2o resources/ioprp.o iop/IOPRP_FILEIO.IMG _ioprp_img
+	@bin2o iop/IOPRP_FILEIO.IMG resources/ioprp.o _ioprp_img
 
 	@# Graphics
 	@bin2o resources/background.png resources/background_png.o _background_png
