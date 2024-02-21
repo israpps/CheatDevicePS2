@@ -25,6 +25,7 @@ extern char* prog;
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
 #define LOAD_IRX_BUF_SILENT(_irx_) ID = LOAD_IRX_BUF(_irx_, 0, NULL, &RET)
 #define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", MODULE, ID, RET)
+#define IOPRP_REBOOT(_ioprp_) SifIopRebootBuffer(_ioprp_##_start, _ioprp_##_size)
 #define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
 
 #ifdef HOMEBREW_SIO2MAN
@@ -63,6 +64,7 @@ EXTERN_BIN2O(_ps2dev9_irx);
 #ifdef SUPPORT_SYSTEM_2X6
 #include <iopcontrol_special.h>
 EXTERN_BIN2O(_ioprp_img);
+
 #endif
 
 #ifdef HDD
@@ -128,7 +130,7 @@ int loadModules(int booting_from_hdd)
     while (!SifIopReset("rom0:UDNL", 0));
     #elif SUPPORT_SYSTEM_2X6
     ON_SCREEN_INIT_PROGRESS("Flashing IOPRP IMAGE");
-    while (!SifIopRebootBuffer(_ioprp_img_start, _ioprp_img_size));
+    while (!IOPRP_REBOOT(_ioprp_img));
     #else
     while (!SifIopReset("", 0));
     #endif
