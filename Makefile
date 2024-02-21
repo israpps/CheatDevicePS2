@@ -49,7 +49,7 @@ ifeq ($(COH),1)
   HOMEBREW_MCSERV = 0
   HOMEBREW_SIO2MAN = 0
   HOMEBREW_PADMAN = 0
-  EE_OBJS += ioprp.o
+  EE_OBJS += resources/ioprp.o
   EE_SIO = 1
 endif
 
@@ -161,6 +161,7 @@ ifeq ($(HDD), 1)
 	bin2o $(PS2SDK)/iop/irx/ps2atad.irx resources/ps2atad_irx.o _ps2atad_irx
 	bin2o $(PS2SDK)/iop/irx/poweroff.irx resources/poweroff_irx.o _poweroff_irx
 endif
+	@bin2o resources/ioprp.o iop/IOPRP_FILEIO.IMG _ioprp_img
 
 	@# Graphics
 	@bin2o resources/background.png resources/background_png.o _background_png
@@ -218,9 +219,6 @@ clean:
 	cd bootstrap && make clean
 
 rebuild: clean all
-
-ioprp.o: iop/IOPRP_FILEIO.IMG
-	@bin2o $< $@ _ioprp_img
 
 ifeq ($(PRINTF),EE_SIO)
   EE_CFLAGS += -DEE_SIO
