@@ -129,13 +129,15 @@ int loadModules(int booting_from_hdd)
 #ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
 #elif SUPPORT_SYSTEM_2X6
-    DPRINTF("Flashing IOPRP IMAGE");
-    while (!IOPRP_REBOOT(_ioprp_img)) DPRINTF(".");
-    DPRINTF("\n");
+    sio_printf("Flashing IOPRP IMAGE");
+    while (!IOPRP_REBOOT(_ioprp_img)) sio_printf(".");
+    sio_printf("\n");
 #else
     while (!SifIopReset("", 0));
 #endif
-    while (!SifIopSync());
+    sio_printf("SifIopSync");
+    while (!SifIopSync()) sio_printf(".");
+    sio_printf("\n");
 
     /* exit services */
     fioExit();
