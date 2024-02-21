@@ -62,8 +62,7 @@ EXTERN_BIN2O(_ps2dev9_irx);
 
 #ifdef SUPPORT_SYSTEM_2X6
 #include <iopcontrol_special.h>
-extern u8  _ioprp_img[];
-extern int _ioprp_img_size;
+EXTERN_BIN2O(_ioprp_img);
 #endif
 
 #ifdef HDD
@@ -129,7 +128,7 @@ int loadModules(int booting_from_hdd)
     while (!SifIopReset("rom0:UDNL", 0));
     #elif SUPPORT_SYSTEM_2X6
     ON_SCREEN_INIT_PROGRESS("Flashing IOPRP IMAGE");
-    while (!SifIopRebootBuffer(_ioprp_img, _ioprp_img_size));
+    while (!SifIopRebootBuffer(_ioprp_img_start, _ioprp_img_size));
     #else
     while (!SifIopReset("", 0));
     #endif
