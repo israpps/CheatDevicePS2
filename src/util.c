@@ -121,6 +121,7 @@ void poweroffCallback(void *arg)
 int loadModules(int booting_from_hdd)
 {
     int ID, RET, HDDSTAT, filexio_loaded=0, dev9_loaded=0;
+    int report_err = 0;
     DPRINTF("\n ** Loading main modules **\n");
 
     /* IOP reset routine taken from ps2rd */
@@ -129,15 +130,15 @@ int loadModules(int booting_from_hdd)
 #ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
 #elif SUPPORT_SYSTEM_2X6
-    sio_printf("Flashing IOPRP IMAGE");
-    while (!IOPRP_REBOOT(_ioprp_img)) sio_printf(".");
-    sio_printf("\n");
+    sio_printf("Flashing IOPRP IMAGE..");
+    while (!IOPRP_REBOOT(_ioprp_img));
+    sio_printf(".\n");
 #else
     while (!SifIopReset("", 0));
 #endif
-    sio_printf("SifIopSync");
-    while (!SifIopSync()) sio_printf(".");
-    sio_printf("\n");
+    sio_printf("SifIopSync()..");
+    while (!SifIopSync());
+    sio_printf(".\n");
 
     /* exit services */
     fioExit();
@@ -216,6 +217,11 @@ int loadModules(int booting_from_hdd)
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
  #endif
  int mcserv_is_runnin = IRX_LOAD_SUCCESS();
+    if (!mcserv_is_runnin) {
+        sprintf(error, "MCSERV module failed to load\nid: %d, ret: %d", ID, RET);
+        report_err = 1;
+    }
+
  #ifdef HOMEBREW_PADMAN
     LOAD_IRX_BUF_SILENT(_padman_irx);
     MODULE_REPORT("PADMAN");
@@ -224,6 +230,12 @@ int loadModules(int booting_from_hdd)
     MODULE_REPORT("rom0:PADMAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
  #endif
+
+ int padman_is_runnin = IRX_LOAD_SUCCESS();
+    if (!padman_is_runnin) {
+        sprintf(error, "PADMAN module failed to load\nid: %d, ret: %d", ID, RET);
+        report_err = 1;
+    }
 #ifdef EXFAT
     LOAD_IRX_BUF_SILENT(_bdm_irx);
     MODULE_REPORT("BDM");
@@ -261,13 +273,12 @@ int loadModules(int booting_from_hdd)
     DPRINTF(".done\n");
     } else {
         DPRINTF("skipping MCSERV RPC\n");
-        displayError("MCSERV module failed to load\nmemory card access disabled");
     }
-
-    ON_SCREEN_INIT_PROGRESS("Initializing PAD RPC");
-    DPRINTF("padInitialize()..");
-    padInitialize();
-    DPRINTF(".done\n");
+    if (padman_is_runnin) {
+        DPRINTF("Initializing PAD RPC..");
+        padInitialize();
+        DPRINTF(".done\n");
+    }
 
 #ifdef HDD
     if (booting_from_hdd) {
@@ -320,7 +331,7 @@ int loadModules(int booting_from_hdd)
         }
     }
 #endif
-    return 0;
+    return report_err;
 }
 
 void handlePad()

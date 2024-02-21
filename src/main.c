@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
 #endif
     
     ret = loadModules(booting_from_hdd);
+    ON_SCREEN_INIT_PROGRESS("Initialize menu");
+    initMenus();
     if (ret != 0) displayError(error);
 #ifdef HDD
     if (ret == 0) {
@@ -79,8 +81,6 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    ON_SCREEN_INIT_PROGRESS("Initialize menu");
-    initMenus();
     ON_SCREEN_INIT_PROGRESS("Initialize settings");
     initSettings();
     
