@@ -136,7 +136,7 @@ else
 	bin2o $(PS2SDK)/iop/irx/usbhdfsd.irx resources/usbhdfsd_irx.o _usbhdfsd_irx
 endif
 ifeq ($(HOMEBREW_SIO2MAN),1)
-	bin2o $(PS2SDK)/iop/irx/freesio2.irx resources/sio2man_irx.o _sio2man_irx
+	bin2o $(PS2SDK)/iop/irx/sio2man.irx resources/sio2man_irx.o _sio2man_irx
 endif
 ifeq ($(HOMEBREW_MCMAN),1)
 	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
