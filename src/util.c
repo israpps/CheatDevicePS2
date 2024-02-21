@@ -252,7 +252,7 @@ int loadModules(int booting_from_hdd)
 #endif
     DPRINTF(".done\n");
     } else {
-        DPRITNF()
+        DPRINTF("skipping MCSERV RPC\n");
         displayError("MCSERV module failed to load\nmemory card access disabled");
     }
 
