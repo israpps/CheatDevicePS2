@@ -211,6 +211,7 @@ int loadModules(int booting_from_hdd)
     MODULE_REPORT("rom0:MCSERV");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
  #endif
+ int mcserv_is_runnin = IRX_LOAD_SUCCESS();
  #ifdef HOMEBREW_PADMAN
     LOAD_IRX_BUF_SILENT(_padman_irx);
     MODULE_REPORT("PADMAN");
@@ -240,7 +241,7 @@ int loadModules(int booting_from_hdd)
     sleep(3); // Allow USB devices some time to be detected
  #endif
 #endif
-
+    if (mcserv_is_runnin) {
 #if defined(HOMEBREW_MCMAN) || defined(SUPPORT_SYSTEM_2X6)
     ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
     DPRINTF("mcInit(MC_TYPE_XMC)..");
@@ -250,6 +251,7 @@ int loadModules(int booting_from_hdd)
     mcInit(MC_TYPE_MC);
 #endif
     DPRINTF(".done\n");
+    } else displayError("MCSERV module failed to load\nmemory card access disabled");
 
     ON_SCREEN_INIT_PROGRESS("Initializing PAD RPC");
     DPRINTF("padInitialize()..");
