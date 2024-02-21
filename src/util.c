@@ -126,14 +126,15 @@ int loadModules(int booting_from_hdd)
     /* IOP reset routine taken from ps2rd */
     SifInitRpc(0);
 
-    #ifdef _DTL_T10000
+#ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
-    #elif SUPPORT_SYSTEM_2X6
-    ON_SCREEN_INIT_PROGRESS("Flashing IOPRP IMAGE");
-    while (!IOPRP_REBOOT(_ioprp_img));
-    #else
+#elif SUPPORT_SYSTEM_2X6
+    DPRINTF("Flashing IOPRP IMAGE");
+    while (!IOPRP_REBOOT(_ioprp_img)) DPRINTF(".");
+    DPRINTF("\n");
+#else
     while (!SifIopReset("", 0));
-    #endif
+#endif
     while (!SifIopSync());
 
     /* exit services */
