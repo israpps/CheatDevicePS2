@@ -47,6 +47,7 @@ ifeq ($(COH),1)
   HAS_COH = -COH
   HOMEBREW_MCMAN = 0
   HOMEBREW_MCSERV = 0
+  HOMEBREW_SIO2MAN = 0
   EE_OBJS += ioprp.o
   EE_SIO = 1
 endif

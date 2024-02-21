@@ -251,7 +251,10 @@ int loadModules(int booting_from_hdd)
     mcInit(MC_TYPE_MC);
 #endif
     DPRINTF(".done\n");
-    } else displayError("MCSERV module failed to load\nmemory card access disabled");
+    } else {
+        DPRITNF()
+        displayError("MCSERV module failed to load\nmemory card access disabled");
+    }
 
     ON_SCREEN_INIT_PROGRESS("Initializing PAD RPC");
     DPRINTF("padInitialize()..");
