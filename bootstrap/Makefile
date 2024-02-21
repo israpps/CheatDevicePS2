@@ -2,7 +2,7 @@ EE_BIN = bootstrap.elf
 EE_OBJS = main.o
 
 ifeq ($(COH),1)
-  EE_CFLAGS += -DSUPPORT_SYSTEM_2x6
+  EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
   EE_LIBS += -liopreboot
   EE_OBJS += ../ioprp.o
 endif
