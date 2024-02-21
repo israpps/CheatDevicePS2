@@ -5,7 +5,10 @@
 
 DTL_T10000 ?= 0
 EXFAT ?= 0
-HOMEBREW_IRX ?= 1 #wether to use or not homebrew IRX for pad, memcard and SIO2. if disabled. rom0: drivers will be used. wich is not a safe option. as it makes using the program on protokernel PS2 dangerous (at least for memcard I/O)
+HOMEBREW_MCMAN ?= 1
+HOMEBREW_MCSERV ?= 1
+HOMEBREW_PADMAN ?= 1
+HOMEBREW_SIO2MAN ?= 1
 PRINTF = NONE
 RELDIR = release
 EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD)$(HAS_COH).ELF
@@ -28,9 +31,6 @@ OBJS += src/saveformats/util.o src/saveformats/cbs.o src/saveformats/psu.o src/s
 # IRX Modules
 IRX_OBJS += resources/usbd_irx.o
 IRX_OBJS += resources/iomanX_irx.o
-ifeq ($(HOMEBREW_IRX),1)
-  IRX_OBJS += resources/sio2man_irx.o resources/mcman_irx.o resources/mcserv_irx.o resources/padman_irx.o
-endif
 
 ifeq ($(EXFAT),1)
   EE_CFLAGS += -DEXFAT
@@ -45,7 +45,8 @@ ifeq ($(COH),1)
   EE_CFLAGS += -DSUPPORT_SYSTEM_2x6
   EE_LIBS += -liopreboot
   HAS_COH = -COH
-  HOMEBREW_IRX = 0
+  HOMEBREW_MCMAN = 0
+  HOMEBREW_MCSERV = 0
   EE_OBJS += ioprp.o
   EE_SIO = 1
 endif
@@ -83,15 +84,28 @@ OBJS += engine/engine_erl.o
 
 # Bootstrap ELF
 OBJS += bootstrap/bootstrap_elf.o
-
-ifeq ($(HOMEBREW_IRX),1)
-	   += -lpadx
-  EE_CFLAGS += -DHOMEBREW_IRX
+ifeq ($(HOMEBREW_PADMAN),1)
+  IRX_OBJS += resources/padman_irx.o
+  EE_LIBS += -lpadx
+  EE_CFLAGS += -DHOMEBREW_PADMAN
 else ifeq ($(COH),1)#Because on COH, rom0:PADMAN has the RPC style of retail rom0:XPADMAN
   EE_LIBS += -lpadx
 else
   EE_LIBS += -lpad
 endif
+ifeq ($(HOMEBREW_MCMAN),1)
+  EE_CFLAGS += -DHOMEBREW_MCMAN
+  IRX_OBJS += resources/mcman_irx.o
+endif
+ifeq ($(HOMEBREW_SIO2MAN),1)
+  EE_CFLAGS += -DHOMEBREW_SIO2MAN
+  IRX_OBJS += resources/sio2man_irx.o
+endif
+ifeq ($(HOMEBREW_MCSERV),1)
+  EE_CFLAGS += -DHOMEBREW_MCSERV
+  IRX_OBJS += resources/mcserv_irx.o
+endif
+
 ifeq ($(DTL_T10000),1)
 	EE_CFLAGS += -D_DTL_T10000 -g
 endif
@@ -121,10 +135,16 @@ ifeq ($(EXFAT),1)
 else
 	bin2o $(PS2SDK)/iop/irx/usbhdfsd.irx resources/usbhdfsd_irx.o _usbhdfsd_irx
 endif
-ifeq ($(HOMEBREW_IRX),1)
+ifeq ($(HOMEBREW_SIO2MAN),1)
 	bin2o $(PS2SDK)/iop/irx/freesio2.irx resources/sio2man_irx.o _sio2man_irx
+endif
+ifeq ($(HOMEBREW_MCMAN),1)
 	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
+endif
+ifeq ($(HOMEBREW_MCSERV),1)
 	bin2o $(PS2SDK)/iop/irx/mcserv.irx resources/mcserv_irx.o _mcserv_irx
+endif
+ifeq ($(HOMEBREW_PADMAN),1)
 	bin2o $(PS2SDK)/iop/irx/freepad.irx resources/padman_irx.o _padman_irx
 endif
 ifeq ($(FILEXIO_NEED), 1)

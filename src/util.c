@@ -23,15 +23,23 @@ extern char* prog;
 #define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
-#define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, NULL)
-#define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", ID, RET)
+#define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, &RET)
+#define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", MODULE, ID, RET)
 #define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
-#ifdef HOMEBREW_IRX
+
+#ifdef HOMEBREW_SIO2MAN
 EXTERN_BIN2O(_sio2man_irx)
+#endif
+#ifdef HOMEBREW_MCMAN
 EXTERN_BIN2O(_mcman_irx)
+#endif
+#ifdef HOMEBREW_MCSERV
 EXTERN_BIN2O(_mcserv_irx);
+#endif
+#ifdef HOMEBREW_PADMAN
 EXTERN_BIN2O(_padman_irx);
 #endif
+
 EXTERN_BIN2O(_usbd_irx);
 EXTERN_BIN2O(_iomanX_irx);
 
@@ -174,28 +182,43 @@ int loadModules(int booting_from_hdd)
     }
 #endif
 
-#ifdef HOMEBREW_IRX
+#ifdef HOMEBREW_MCMAN
 #ifdef SUPPORT_SYSTEM_2X6
 #error Namco system 2x6 enabled, homebrew MCMAN cannot be used
 #endif
+#endif
+ #ifdef HOMEBREW_SIO2MAN
     LOAD_IRX_BUF_SILENT(_sio2man_irx);
-    LOAD_IRX_BUF_SILENT(_padman_irx);
-    LOAD_IRX_BUF_SILENT(_mcman_irx);
-    LOAD_IRX_BUF_SILENT(_mcserv_irx);
-#else
+    MODULE_REPORT("SIO2MAN");
+ #else
     ID = SifLoadStartModule("rom0:SIO2MAN", 0, NULL, &RET);
     MODULE_REPORT("rom0:SIO2MAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:SIO2MAN]: ID=%d, ret=%d\n", ID, RET);
-    ID = SifLoadStartModule("rom0:PADMAN", 0, NULL, &RET);
-    MODULE_REPORT("rom0:PADMAN");
-    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+ #ifdef HOMEBREW_MCMAN
+    LOAD_IRX_BUF_SILENT(_mcman_irx);
+    MODULE_REPORT("MCMAN");
+ #else
     ID = SifLoadStartModule("rom0:MCMAN", 0, NULL, &RET);
     MODULE_REPORT("rom0:MCMAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCMAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+ #ifdef HOMEBREW_MCSERV
+    LOAD_IRX_BUF_SILENT(_mcserv_irx);
+    MODULE_REPORT("MCSERV");
+ #else
     ID = SifLoadStartModule("rom0:MCSERV", 0, NULL, &RET);
     MODULE_REPORT("rom0:MCSERV");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
-#endif
+ #endif
+ #ifdef HOMEBREW_PADMAN
+    LOAD_IRX_BUF_SILENT(_padman_irx);
+    MODULE_REPORT("PADMAN");
+ #else
+    ID = SifLoadStartModule("rom0:PADMAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:PADMAN");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
 #ifdef EXFAT
     LOAD_IRX_BUF_SILENT(_bdm_irx);
     MODULE_REPORT("BDM");
@@ -214,7 +237,7 @@ int loadModules(int booting_from_hdd)
     sleep(2); // Allow USB devices some time to be detected
 #endif
 
-#if defined(HOMEBREW_IRX) || defined(SUPPORT_SYSTEM_2X6)
+#if defined(HOMEBREW_MCMAN) || defined(SUPPORT_SYSTEM_2X6)
     ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
     DPRINTF("mcInit(MC_TYPE_XMC)..");
     mcInit(MC_TYPE_XMC);
