@@ -23,7 +23,7 @@ extern char* prog;
 #define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
-#define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, &RET)
+#define LOAD_IRX_BUF_SILENT(_irx_) ID = LOAD_IRX_BUF(_irx_, 0, NULL, &RET)
 #define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", MODULE, ID, RET)
 #define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
 
@@ -228,13 +228,17 @@ int loadModules(int booting_from_hdd)
     MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbmass_bd_irx);
     MODULE_REPORT("USBMASS_BD");
+ #ifndef SUPPORT_SYSTEM_2X6
     sleep(3); // Allow USB devices some time to be detected
+ #endif
 #else
     LOAD_IRX_BUF_SILENT(_usbd_irx);
     MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbhdfsd_irx);
     MODULE_REPORT("USBHDFSD");
-    sleep(2); // Allow USB devices some time to be detected
+ #ifndef SUPPORT_SYSTEM_2X6
+    sleep(3); // Allow USB devices some time to be detected
+ #endif
 #endif
 
 #if defined(HOMEBREW_MCMAN) || defined(SUPPORT_SYSTEM_2X6)
