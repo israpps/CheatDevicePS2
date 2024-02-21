@@ -242,7 +242,11 @@ int loadModules(int booting_from_hdd)
  #endif
 #endif
     if (mcserv_is_runnin) {
-#if defined(HOMEBREW_MCMAN) || defined(SUPPORT_SYSTEM_2X6)
+#ifdef HOMEBREW_MCMAN
+    ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
+    DPRINTF("mcInit(MC_TYPE_XMC)..");
+    mcInit(MC_TYPE_XMC);
+#elif defined(SUPPORT_SYSTEM_2X6)
     ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
     DPRINTF("mcInit(MC_TYPE_XMC)..");
     mcInit(MC_TYPE_XMC);
