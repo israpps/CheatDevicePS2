@@ -46,6 +46,7 @@ ifeq ($(COH),1)
   HAS_COH = -COH
   HOMEBREW_IRX = 0
   EE_OBJS += ioprp.o
+  EE_SIO = 1
 endif
 
 ifeq ($(HDD), 1)
