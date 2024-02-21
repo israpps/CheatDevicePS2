@@ -145,6 +145,13 @@ int loadModules(int booting_from_hdd)
 
     sbv_patch_enable_lmb();
     sbv_patch_disable_prefix_check();
+
+
+#ifdef SUPPORT_SYSTEM_2X6
+    ID = SifLoadStartModule("rom0:CDVDFSV", 0, NULL, &RET);
+    DPRINTF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
+#endif
+
     LOAD_IRX_BUF_SILENT(_iomanX_irx);
 #ifdef FILEXIO
     if (booting_from_hdd) {
