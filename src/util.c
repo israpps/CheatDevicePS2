@@ -24,6 +24,7 @@ extern char* prog;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
 #define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, NULL)
+#define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", ID, RET)
 #define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
 #ifdef HOMEBREW_IRX
 EXTERN_BIN2O(_sio2man_irx)
@@ -151,14 +152,16 @@ int loadModules(int booting_from_hdd)
 
 #ifdef SUPPORT_SYSTEM_2X6
     ID = SifLoadStartModule("rom0:CDVDFSV", 0, NULL, &RET);
-    DPRINTF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
+    MODULE_REPORT("rom0:CDVDFSV");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
 #endif
 
     LOAD_IRX_BUF_SILENT(_iomanX_irx);
+    MODULE_REPORT("IOMANX");
 #ifdef FILEXIO
     if (booting_from_hdd) {
         ID = LOAD_IRX_BUF_NARG(_filexio_irx, &RET);
+        MODULE_REPORT("FILEXIO");
         filexio_loaded = IRX_LOAD_SUCCESS();
         if (filexio_loaded) fileXioInit(); else sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "FILEXIO.IRX", ID, RET);
     }
@@ -166,6 +169,7 @@ int loadModules(int booting_from_hdd)
 #ifdef DEV9
     if (booting_from_hdd) {
         ID = LOAD_IRX_BUF_NARG(_ps2dev9_irx, &RET);
+        MODULE_REPORT("DEV9");
         dev9_loaded = IRX_LOAD_SUCCESS();
     }
 #endif
@@ -180,35 +184,50 @@ int loadModules(int booting_from_hdd)
     LOAD_IRX_BUF_SILENT(_mcserv_irx);
 #else
     ID = SifLoadStartModule("rom0:SIO2MAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:SIO2MAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:SIO2MAN]: ID=%d, ret=%d\n", ID, RET);
     ID = SifLoadStartModule("rom0:PADMAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:PADMAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
     ID = SifLoadStartModule("rom0:MCMAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:MCMAN");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCMAN]: ID=%d, ret=%d\n", ID, RET);
     ID = SifLoadStartModule("rom0:MCSERV", 0, NULL, &RET);
+    MODULE_REPORT("rom0:MCSERV");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
 #endif
 #ifdef EXFAT
     LOAD_IRX_BUF_SILENT(_bdm_irx);
+    MODULE_REPORT("BDM");
     LOAD_IRX_BUF_SILENT(_bdmfs_fatfs_irx);
+    MODULE_REPORT("BDMFS_FATFS");
     LOAD_IRX_BUF_SILENT(_usbd_irx);
+    MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbmass_bd_irx);
+    MODULE_REPORT("USBMASS_BD");
     sleep(3); // Allow USB devices some time to be detected
 #else
     LOAD_IRX_BUF_SILENT(_usbd_irx);
+    MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbhdfsd_irx);
+    MODULE_REPORT("USBHDFSD");
     sleep(2); // Allow USB devices some time to be detected
 #endif
 
 #if defined(HOMEBREW_IRX) || defined(SUPPORT_SYSTEM_2X6)
     ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
+    DPRINTF("mcInit(MC_TYPE_XMC)..");
     mcInit(MC_TYPE_XMC);
 #else
+    DPRINTF("mcInit(MC_TYPE_MC)..");
     mcInit(MC_TYPE_MC);
 #endif
+    DPRINTF(".done\n");
 
     ON_SCREEN_INIT_PROGRESS("Initializing PAD RPC");
+    DPRINTF("padInitialize()..");
     padInitialize();
+    DPRINTF(".done\n");
 
 #ifdef HDD
     if (booting_from_hdd) {

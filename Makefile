@@ -41,6 +41,7 @@ else
 endif
 
 ifeq ($(COH),1)
+  PRINTF = EE_SIO
   EE_CFLAGS += -DSUPPORT_SYSTEM_2x6
   EE_LIBS += -liopreboot
   HAS_COH = -COH

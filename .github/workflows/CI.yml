@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        opts: ["", "HDD=1", "EXFAT=1", "COH=1"]
+        opts: ["", "HDD=1", "EXFAT=1", "COH=1 EXFAT=1"]
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:v1.0
     steps:
