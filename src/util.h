@@ -8,6 +8,10 @@
 
 #include <tamtypes.h>
 
+#define ON_SCREEN_INIT_PROGRESS(x) displayError(x)
+#define ON_SCREEN_INIT_PROGRESS_BUF(x...) sprintf(prog, x), displayError(prog)
+extern char* prog;
+
 #define READ_8(address) \
 *((unsigned char *)address)
 

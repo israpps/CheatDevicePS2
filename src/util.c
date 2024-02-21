@@ -118,6 +118,7 @@ int loadModules(int booting_from_hdd)
     #ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
     #elif SUPPORT_SYSTEM_2X6
+    ON_SCREEN_INIT_PROGRESS("Flashing IOPRP IMAGE");
     while (!SifIopRebootBuffer(_ioprp_img, _ioprp_img_size));
     #else
     while (!SifIopReset("", 0));
@@ -150,6 +151,7 @@ int loadModules(int booting_from_hdd)
 #ifdef SUPPORT_SYSTEM_2X6
     ID = SifLoadStartModule("rom0:CDVDFSV", 0, NULL, &RET);
     DPRINTF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
 #endif
 
     LOAD_IRX_BUF_SILENT(_iomanX_irx);
@@ -176,10 +178,14 @@ int loadModules(int booting_from_hdd)
     LOAD_IRX_BUF_SILENT(_mcman_irx);
     LOAD_IRX_BUF_SILENT(_mcserv_irx);
 #else
-    SifLoadModule("rom0:SIO2MAN", 0, NULL);
-    SifLoadModule("rom0:PADMAN", 0, NULL);
-    SifLoadModule("rom0:MCMAN", 0, NULL);
-    SifLoadModule("rom0:MCSERV", 0, NULL);
+    ID = SifLoadStartModule("rom0:SIO2MAN", 0, NULL, &RET);
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:SIO2MAN]: ID=%d, ret=%d\n", ID, RET);
+    ID = SifLoadStartModule("rom0:PADMAN", 0, NULL, &RET);
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
+    ID = SifLoadStartModule("rom0:MCMAN", 0, NULL, &RET);
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCMAN]: ID=%d, ret=%d\n", ID, RET);
+    ID = SifLoadStartModule("rom0:MCSERV", 0, NULL, &RET);
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
 #endif
 #ifdef EXFAT
     LOAD_IRX_BUF_SILENT(_bdm_irx);
@@ -194,11 +200,13 @@ int loadModules(int booting_from_hdd)
 #endif
 
 #if defined(HOMEBREW_IRX) || defined(SUPPORT_SYSTEM_2X6)
+    ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
     mcInit(MC_TYPE_XMC);
 #else
     mcInit(MC_TYPE_MC);
 #endif
 
+    ON_SCREEN_INIT_PROGRESS("Initializing PAD RPC");
     padInitialize();
 
 #ifdef HDD

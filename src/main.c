@@ -10,6 +10,7 @@
 #include "cheats.h"
 #include "settings.h"
 #include "dbgprintf.h"
+char prog[255];
 #include "util.h"
 
 #ifdef HDD
@@ -77,7 +78,9 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+    ON_SCREEN_INIT_PROGRESS("Initialize settings");
     initSettings();
+    ON_SCREEN_INIT_PROGRESS("Initialize menu");
     initMenus();
     
     char *readOnlyPath = settingsGetReadOnlyDatabasePath();
