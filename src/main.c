@@ -11,7 +11,6 @@
 #include "settings.h"
 #include "dbgprintf.h"
 #include "util.h"
-char prog[255];
 
 #ifdef HDD
 int getMountInfo(char *path, char *mountString, char *mountPoint, char *newCWD);

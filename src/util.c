@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 extern char* error;
-extern char* prog;
 #define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
