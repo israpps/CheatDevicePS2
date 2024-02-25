@@ -25,6 +25,10 @@ int booting_from_hdd = 0;
 char error[255];
 int main(int argc, char *argv[])
 {
+    char *readWritePath = NULL;
+    char *readOnlyPath = NULL;
+    int x;
+
     DPRINTF_INIT();
     int ret = 0;
     printf("Cheat Device. By wesley castro. Maintained by El_isra\n Compilation " __DATE__ " " __TIME__ "\n");
@@ -79,15 +83,27 @@ int main(int argc, char *argv[])
 #endif
     initSettings();
     initMenus();
-    
-    char *readOnlyPath = settingsGetReadOnlyDatabasePath();
+    for (x=0; x<argv;x++)
+    {
+        if (!strncmp("-ord=", argv[x], 5))
+        {
+            DPRINTF("Overriding readonly database path with '%s' from argv[%d]\n", &argv[x][5], x);
+            settingsSetReadOnlyDatabasePath(&argv[x][5]);
+        }
+        if (!strncmp("-owd=", argv[x], 5))
+        {
+            DPRINTF("Overriding read/write database path with '%s' from argv[%d]\n", &argv[x][5], x);
+            settingsSetReadWriteDatabasePath(&argv[x][5]);
+        }
+    }
+    readOnlyPath = settingsGetReadOnlyDatabasePath();
     if(readOnlyPath && !cheatsOpenDatabase(readOnlyPath, 1))
     {
         sprintf(error, "Error loading read-only cheat database \"%s\"!", readOnlyPath);
         displayError(error);
     }
 
-    char *readWritePath = settingsGetReadWriteDatabasePath();
+    readWritePath = settingsGetReadWriteDatabasePath();
     if(readWritePath && !cheatsOpenDatabase(readWritePath, 0))
     {
         sprintf(error, "Error loading read/write cheat database \"%s\"!", readWritePath);
