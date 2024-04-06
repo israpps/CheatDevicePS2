@@ -119,7 +119,13 @@ void poweroffCallback(void *arg)
 
 int loadModules(int booting_from_hdd)
 {
-    int ID, RET, HDDSTAT, filexio_loaded=0, dev9_loaded=0;
+    int ID, RET, HDDSTAT;
+#ifdef DEV9
+    int dev9_loaded=0;
+#endif
+#ifdef FILEXIO
+    int filexio_loaded=0;
+#endif
     int report_err = 0;
     DPRINTF("\n ** Loading main modules **\n");
 
@@ -163,6 +169,10 @@ int loadModules(int booting_from_hdd)
 
 
 #ifdef SUPPORT_SYSTEM_2X6
+
+    ID = SifLoadStartModule("rom0:LED", 0, NULL, &RET);
+    MODULE_REPORT("rom0:LED");
+
     ID = SifLoadStartModule("rom0:CDVDFSV", 0, NULL, &RET);
     MODULE_REPORT("rom0:CDVDFSV");
     ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
@@ -186,11 +196,6 @@ int loadModules(int booting_from_hdd)
     }
 #endif
 
-#ifdef HOMEBREW_MCMAN
-#ifdef SUPPORT_SYSTEM_2X6
-#error Namco system 2x6 enabled, homebrew MCMAN cannot be used
-#endif
-#endif
  #ifdef HOMEBREW_SIO2MAN
     LOAD_IRX_BUF_SILENT(_sio2man_irx);
     MODULE_REPORT("SIO2MAN");

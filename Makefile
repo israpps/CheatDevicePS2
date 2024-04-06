@@ -45,7 +45,7 @@ ifeq ($(COH),1)
   EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
   EE_LIBS += -liopreboot
   HAS_COH = -COH
-  HOMEBREW_MCMAN = 0
+  HOMEBREW_MCMAN = 1
   HOMEBREW_MCSERV = 0
   HOMEBREW_SIO2MAN = 0
   HOMEBREW_PADMAN = 0
@@ -141,7 +141,13 @@ ifeq ($(HOMEBREW_SIO2MAN),1)
 	bin2o $(PS2SDK)/iop/irx/sio2man.irx resources/sio2man_irx.o _sio2man_irx
 endif
 ifeq ($(HOMEBREW_MCMAN),1)
+ ifeq ($(COH),1)
+	bin2o iop/dongleman.irx resources/mcman_irx.o _mcman_irx
+	echo Using dongleman
+ else
 	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
+	echo using homebrew MCMAN
+ endif
 endif
 ifeq ($(HOMEBREW_MCSERV),1)
 	bin2o $(PS2SDK)/iop/irx/mcserv.irx resources/mcserv_irx.o _mcserv_irx
