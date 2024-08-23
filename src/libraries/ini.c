@@ -67,7 +67,7 @@ struct ini_info *ini_load(const char *filename) {
   f=fopen(filename, "r");
   if(!f) {
     fprintf(stderr, "%s:%s\n", filename, strerror(errno));
-    return 0;
+    return NULL;
   }
 
   /* create a new ini_info */

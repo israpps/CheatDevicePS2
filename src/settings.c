@@ -133,16 +133,20 @@ int initSettings()
 
     DPRINTF("\n ** Initializing Settings **\n");
 
-    struct ini_info *ini = ini_load(settingsPath);
-
-    getINIString(ini, &settings.databasePath, "database", NULL);
-    getINIString(ini, &settings.databaseReadOnlyPath, "databaseReadOnly", NULL);
-    getINIString(ini, &settings.databaseReadWritePath, "databaseReadWrite", NULL);
-    getINIString(ini, &settings.bootPaths[0], "boot1", defaultBootPaths[0]);
-    getINIString(ini, &settings.bootPaths[1], "boot2", defaultBootPaths[1]);
-    getINIString(ini, &settings.bootPaths[2], "boot3", defaultBootPaths[2]);
-    getINIString(ini, &settings.bootPaths[3], "boot4", defaultBootPaths[3]);
-    getINIString(ini, &settings.bootPaths[4], "boot5", defaultBootPaths[4]);
+    struct ini_info *ini;
+    if (!(ini = ini_load(settingsPath))) {
+        ini = ini_load("CHTD.INI");
+    }
+    if (ini) {
+        getINIString(ini, &settings.databasePath, "database", NULL);
+        getINIString(ini, &settings.databaseReadOnlyPath, "databaseReadOnly", NULL);
+        getINIString(ini, &settings.databaseReadWritePath, "databaseReadWrite", NULL);
+        getINIString(ini, &settings.bootPaths[0], "boot1", defaultBootPaths[0]);
+        getINIString(ini, &settings.bootPaths[1], "boot2", defaultBootPaths[1]);
+        getINIString(ini, &settings.bootPaths[2], "boot3", defaultBootPaths[2]);
+        getINIString(ini, &settings.bootPaths[3], "boot4", defaultBootPaths[3]);
+        getINIString(ini, &settings.bootPaths[4], "boot5", defaultBootPaths[4]);
+    }
 
     migrateOldDatabaseSetting();
 
