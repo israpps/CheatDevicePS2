@@ -693,7 +693,11 @@ void graphicsDrawMainMenu(int activeItem)
 void graphicsDrawDeviceMenu(int activeItem)
 {
     static const menuIcon_t icons[] = {
+#ifndef SUPPORT_SYSTEM_2X6
         {"Memory Card (Slot 1)", &memorycard1},
+#else
+        {"Security Dongle (Slot 1)", &memorycard1},
+#endif
         {"Memory Card (Slot 2)", &memorycard2},
         {"Flash Drive", &flashdrive}
     };

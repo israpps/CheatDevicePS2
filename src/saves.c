@@ -29,7 +29,11 @@ static const char *HELP_TICKER_SAVES = \
     "{CROSS} Copy     "
     "{CIRCLE} Device Menu";
 
+#ifndef SUPPORT_SYSTEM_2X6
 static const char *MEMORY_CARD_1_NAME   = "Memory Card (Slot 1)";
+#else
+static const char *MEMORY_CARD_1_NAME   = "Security Dongle (Slot 1)";
+#endif
 static const char *MEMORY_CARD_2_NAME   = "Memory Card (Slot 2)";
 static const char *FLASH_DRIVE_NAME     = "Flash Drive";
 
@@ -108,7 +112,12 @@ static void drawDecorations(const menuItem_t *selected)
     switch(s_currentDevice)
     {
         case MC_SLOT_1:
+
+#ifndef SUPPORT_SYSTEM_2X6
             deviceName = "Memory Card (Slot 1)";
+#else
+            deviceName = "Security Dongle (Slot 1)";
+#endif
             freeSpace = s_mc1Free;
             break;
         case MC_SLOT_2:

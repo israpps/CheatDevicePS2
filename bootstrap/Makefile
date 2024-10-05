@@ -1,11 +1,17 @@
 EE_BIN = bootstrap.elf
 EE_OBJS = main.o
 
+#ifeq ($(COH),1)
+#  EE_LIBS += -lpatches
+#  EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
+#  EE_LIBS += -liopreboot
+#  EE_OBJS += ../ioprp.o
+#endif
+
 #EE_LDFLAGS = -s -Ttext 0x00090000
 #EE_LDFLAGS = -s -Ttext 0x01900000
 #EE_LDFLAGS = -s -Ttext 0x000F3000
 #EE_LIBS += -lkernel -lpatches -lerl
-
 EE_CFLAGS  := -mips3 -ffreestanding -fno-builtin -G0 \
 		-fshort-double -mlong64 -mhard-float -mno-abicalls -O2 -EL -Wall \
 		$(EE_INCS) $(EE_CFLAGS)
@@ -26,6 +32,9 @@ all: $(EE_BIN)
 
 clean:
 	rm -f *.o *.s *.elf
+
+../ioprp.o: ../iop/IOPRP_FILEIO.IMG
+	@bin2o $< $@ _ioprp_img
 
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal

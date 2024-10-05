@@ -5,10 +5,13 @@
 
 DTL_T10000 ?= 0
 EXFAT ?= 0
-HOMEBREW_IRX ?= 1 #wether to use or not homebrew IRX for pad, memcard and SIO2. if disabled. rom0: drivers will be used. wich is not a safe option. as it makes using the program on protokernel PS2 dangerous (at least for memcard I/O)
+HOMEBREW_MCMAN ?= 1
+HOMEBREW_MCSERV ?= 1
+HOMEBREW_PADMAN ?= 1
+HOMEBREW_SIO2MAN ?= 1
 PRINTF = NONE
 RELDIR = release
-EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD).ELF
+EE_BIN = CheatDevice$(HAS_EXFAT)$(HAS_HDD)$(HAS_COH).ELF
 # For minizip
 EE_CFLAGS += -DUSE_FILE32API
 
@@ -28,9 +31,6 @@ OBJS += src/saveformats/util.o src/saveformats/cbs.o src/saveformats/psu.o src/s
 # IRX Modules
 IRX_OBJS += resources/usbd_irx.o
 IRX_OBJS += resources/iomanX_irx.o
-ifeq ($(HOMEBREW_IRX),1)
-  IRX_OBJS += resources/sio2man_irx.o resources/mcman_irx.o resources/mcserv_irx.o resources/padman_irx.o
-endif
 
 ifeq ($(EXFAT),1)
   EE_CFLAGS += -DEXFAT
@@ -38,6 +38,19 @@ ifeq ($(EXFAT),1)
   IRX_OBJS += resources/bdm_irx.o resources/bdmfs_fatfs_irx.o resources/usbmass_bd_irx.o
 else
   IRX_OBJS += resources/usbhdfsd_irx.o
+endif
+
+ifeq ($(COH),1)
+  PRINTF = EE_SIO
+  EE_CFLAGS += -DSUPPORT_SYSTEM_2X6
+  EE_LIBS += -liopreboot
+  HAS_COH = -COH
+  HOMEBREW_MCMAN = 1
+  HOMEBREW_MCSERV = 0
+  HOMEBREW_SIO2MAN = 0
+  HOMEBREW_PADMAN = 0
+  IRX_OBJS += resources/ioprp.o
+  EE_SIO = 1
 endif
 
 ifeq ($(HDD), 1)
@@ -59,8 +72,6 @@ ifeq ($(DEV9_NEED), 1)
   EE_CFLAGS += -DDEV9
   IRX_OBJS += resources/ps2dev9_irx.o
 endif
-
-
 # Graphic resources
 OBJS += resources/background_png.o \
     resources/check_png.o resources/hamburgerIcon_png.o resources/gamepad_png.o resources/cube_png.o \
@@ -75,13 +86,28 @@ OBJS += engine/engine_erl.o
 
 # Bootstrap ELF
 OBJS += bootstrap/bootstrap_elf.o
-
-ifeq ($(HOMEBREW_IRX),1)
-	EE_LIBS += -lpadx
-	EE_CFLAGS += -DHOMEBREW_IRX
+ifeq ($(HOMEBREW_PADMAN),1)
+  IRX_OBJS += resources/padman_irx.o
+  EE_LIBS += -lpadx
+  EE_CFLAGS += -DHOMEBREW_PADMAN
+else ifeq ($(COH),1)#Because on COH, rom0:PADMAN has the RPC style of retail rom0:XPADMAN
+  EE_LIBS += -lpadx
 else
-	EE_LIBS += -lpad
+  EE_LIBS += -lpad
 endif
+ifeq ($(HOMEBREW_MCMAN),1)
+  EE_CFLAGS += -DHOMEBREW_MCMAN
+  IRX_OBJS += resources/mcman_irx.o
+endif
+ifeq ($(HOMEBREW_SIO2MAN),1)
+  EE_CFLAGS += -DHOMEBREW_SIO2MAN
+  IRX_OBJS += resources/sio2man_irx.o
+endif
+ifeq ($(HOMEBREW_MCSERV),1)
+  EE_CFLAGS += -DHOMEBREW_MCSERV
+  IRX_OBJS += resources/mcserv_irx.o
+endif
+
 ifeq ($(DTL_T10000),1)
 	EE_CFLAGS += -D_DTL_T10000 -g
 endif
@@ -111,10 +137,22 @@ ifeq ($(EXFAT),1)
 else
 	bin2o $(PS2SDK)/iop/irx/usbhdfsd.irx resources/usbhdfsd_irx.o _usbhdfsd_irx
 endif
-ifeq ($(HOMEBREW_IRX),1)
-	bin2o $(PS2SDK)/iop/irx/freesio2.irx resources/sio2man_irx.o _sio2man_irx
+ifeq ($(HOMEBREW_SIO2MAN),1)
+	bin2o $(PS2SDK)/iop/irx/sio2man.irx resources/sio2man_irx.o _sio2man_irx
+endif
+ifeq ($(HOMEBREW_MCMAN),1)
+ ifeq ($(COH),1)
+	bin2o iop/dongleman.irx resources/mcman_irx.o _mcman_irx
+	echo Using dongleman
+ else
 	bin2o $(PS2SDK)/iop/irx/mcman.irx resources/mcman_irx.o _mcman_irx
+	echo using homebrew MCMAN
+ endif
+endif
+ifeq ($(HOMEBREW_MCSERV),1)
 	bin2o $(PS2SDK)/iop/irx/mcserv.irx resources/mcserv_irx.o _mcserv_irx
+endif
+ifeq ($(HOMEBREW_PADMAN),1)
 	bin2o $(PS2SDK)/iop/irx/freepad.irx resources/padman_irx.o _padman_irx
 endif
 ifeq ($(FILEXIO_NEED), 1)
@@ -129,6 +167,7 @@ ifeq ($(HDD), 1)
 	bin2o $(PS2SDK)/iop/irx/ps2atad.irx resources/ps2atad_irx.o _ps2atad_irx
 	bin2o $(PS2SDK)/iop/irx/poweroff.irx resources/poweroff_irx.o _poweroff_irx
 endif
+	@bin2o iop/IOPRP_FILEIO.IMG resources/ioprp.o _ioprp_img
 
 	@# Graphics
 	@bin2o resources/background.png resources/background_png.o _background_png
@@ -157,7 +196,6 @@ endif
 	@# Engine
 	@cd engine && $(MAKE)
 	@bin2o engine/engine.erl engine/engine_erl.o _engine_erl
-
 	@# Bootstrap
 	@cd bootstrap && $(MAKE)
 	@bin2o bootstrap/bootstrap.elf bootstrap/bootstrap_elf.o _bootstrap_elf
@@ -178,7 +216,7 @@ $(RELDIR): all
 	zip -q -9 $(RELDIR)/CheatDatabase.zip CheatDatabase.txt
 	cp CheatDevicePS2.ini LICENSE README.md $(RELDIR)
 	sed -i 's/CheatDatabase.txt/CheatDatabase.zip/g' $(RELDIR)/CheatDevicePS2.ini
-	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT)$(HAS_HDD).zip * extra_cheats/*.zip
+	cd $(RELDIR) && zip -q -9 CheatDevicePS2$(HAS_EXFAT)$(HAS_HDD)$(HAS_COH).zip * extra_cheats/*.zip
 
 clean:
 	rm -rf src/*.o src/libraries/*.o src/libraries/minizip/*.o src/saveformats/*.o $(EE_BIN) $(RELDIR)/$(EE_BIN)

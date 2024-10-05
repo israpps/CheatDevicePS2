@@ -22,14 +22,24 @@ extern char* error;
 #define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
-#define LOAD_IRX_BUF_SILENT(_irx_) LOAD_IRX_BUF(_irx_, 0, NULL, NULL)
+#define LOAD_IRX_BUF_SILENT(_irx_) ID = LOAD_IRX_BUF(_irx_, 0, NULL, &RET)
+#define MODULE_REPORT(MODULE) DPRINTF("%s: id:%d, ret:%d\n", MODULE, ID, RET)
+#define IOPRP_REBOOT(_ioprp_) SifIopRebootBuffer(_ioprp_##_start, _ioprp_##_size)
 #define IRX_LOAD_SUCCESS() (ID >= 0 && RET != 1)
-#ifdef HOMEBREW_IRX
+
+#ifdef HOMEBREW_SIO2MAN
 EXTERN_BIN2O(_sio2man_irx)
+#endif
+#ifdef HOMEBREW_MCMAN
 EXTERN_BIN2O(_mcman_irx)
+#endif
+#ifdef HOMEBREW_MCSERV
 EXTERN_BIN2O(_mcserv_irx);
+#endif
+#ifdef HOMEBREW_PADMAN
 EXTERN_BIN2O(_padman_irx);
 #endif
+
 EXTERN_BIN2O(_usbd_irx);
 EXTERN_BIN2O(_iomanX_irx);
 
@@ -48,6 +58,12 @@ EXTERN_BIN2O(_filexio_irx);
 
 #ifdef DEV9
 EXTERN_BIN2O(_ps2dev9_irx);
+#endif
+
+#ifdef SUPPORT_SYSTEM_2X6
+#include <iopcontrol_special.h>
+EXTERN_BIN2O(_ioprp_img);
+
 #endif
 
 #ifdef HDD
@@ -103,18 +119,31 @@ void poweroffCallback(void *arg)
 
 int loadModules(int booting_from_hdd)
 {
-    int ID, RET, HDDSTAT, filexio_loaded=0, dev9_loaded=0;
+    int ID, RET, HDDSTAT;
+#ifdef DEV9
+    int dev9_loaded=0;
+#endif
+#ifdef FILEXIO
+    int filexio_loaded=0;
+#endif
+    int report_err = 0;
     DPRINTF("\n ** Loading main modules **\n");
 
     /* IOP reset routine taken from ps2rd */
     SifInitRpc(0);
 
-    #ifdef _DTL_T10000
+#ifdef _DTL_T10000
     while (!SifIopReset("rom0:UDNL", 0));
-    #else
-    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0));
-    #endif
+#elif SUPPORT_SYSTEM_2X6
+    sio_printf("Flashing IOPRP IMAGE..");
+    while (!IOPRP_REBOOT(_ioprp_img));
+    sio_printf(".\n");
+#else
+    while (!SifIopReset("", 0));
+#endif
+    sio_printf("SifIopSync()..");
     while (!SifIopSync());
+    sio_printf(".\n");
 
     /* exit services */
     fioExit();
@@ -137,10 +166,24 @@ int loadModules(int booting_from_hdd)
 
     sbv_patch_enable_lmb();
     sbv_patch_disable_prefix_check();
+
+
+#ifdef SUPPORT_SYSTEM_2X6
+
+    ID = SifLoadStartModule("rom0:LED", 0, NULL, &RET);
+    MODULE_REPORT("rom0:LED");
+
+    ID = SifLoadStartModule("rom0:CDVDFSV", 0, NULL, &RET);
+    MODULE_REPORT("rom0:CDVDFSV");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:CDVDFSV]: ID=%d, ret=%d\n", ID, RET);
+#endif
+
     LOAD_IRX_BUF_SILENT(_iomanX_irx);
+    MODULE_REPORT("IOMANX");
 #ifdef FILEXIO
     if (booting_from_hdd) {
         ID = LOAD_IRX_BUF_NARG(_filexio_irx, &RET);
+        MODULE_REPORT("FILEXIO");
         filexio_loaded = IRX_LOAD_SUCCESS();
         if (filexio_loaded) fileXioInit(); else sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "FILEXIO.IRX", ID, RET);
     }
@@ -148,40 +191,98 @@ int loadModules(int booting_from_hdd)
 #ifdef DEV9
     if (booting_from_hdd) {
         ID = LOAD_IRX_BUF_NARG(_ps2dev9_irx, &RET);
+        MODULE_REPORT("DEV9");
         dev9_loaded = IRX_LOAD_SUCCESS();
     }
 #endif
 
-#ifdef HOMEBREW_IRX
+ #ifdef HOMEBREW_SIO2MAN
     LOAD_IRX_BUF_SILENT(_sio2man_irx);
-    LOAD_IRX_BUF_SILENT(_padman_irx);
+    MODULE_REPORT("SIO2MAN");
+ #else
+    ID = SifLoadStartModule("rom0:SIO2MAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:SIO2MAN");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:SIO2MAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+ #ifdef HOMEBREW_MCMAN
     LOAD_IRX_BUF_SILENT(_mcman_irx);
+    MODULE_REPORT("MCMAN");
+ #else
+    ID = SifLoadStartModule("rom0:MCMAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:MCMAN");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCMAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+ #ifdef HOMEBREW_MCSERV
     LOAD_IRX_BUF_SILENT(_mcserv_irx);
-#else
-    SifLoadModule("rom0:SIO2MAN", 0, NULL);
-    SifLoadModule("rom0:PADMAN", 0, NULL);
-    SifLoadModule("rom0:MCMAN", 0, NULL);
-    SifLoadModule("rom0:MCSERV", 0, NULL);
-#endif
+    MODULE_REPORT("MCSERV");
+ #else
+    ID = SifLoadStartModule("rom0:MCSERV", 0, NULL, &RET);
+    MODULE_REPORT("rom0:MCSERV");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:MCSERV]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+ int mcserv_is_runnin = IRX_LOAD_SUCCESS();
+    if (!mcserv_is_runnin) {
+        sprintf(error, "MCSERV module failed to load\nid: %d, ret: %d", ID, RET);
+        report_err = 1;
+    }
+
+ #ifdef HOMEBREW_PADMAN
+    LOAD_IRX_BUF_SILENT(_padman_irx);
+    MODULE_REPORT("PADMAN");
+ #else
+    ID = SifLoadStartModule("rom0:PADMAN", 0, NULL, &RET);
+    MODULE_REPORT("rom0:PADMAN");
+    ON_SCREEN_INIT_PROGRESS_BUF(" [rom0:PADMAN]: ID=%d, ret=%d\n", ID, RET);
+ #endif
+
+ int padman_is_runnin = IRX_LOAD_SUCCESS();
+    if (!padman_is_runnin) {
+        sprintf(error, "PADMAN module failed to load\nid: %d, ret: %d", ID, RET);
+        report_err = 1;
+    }
 #ifdef EXFAT
     LOAD_IRX_BUF_SILENT(_bdm_irx);
+    MODULE_REPORT("BDM");
     LOAD_IRX_BUF_SILENT(_bdmfs_fatfs_irx);
+    MODULE_REPORT("BDMFS_FATFS");
     LOAD_IRX_BUF_SILENT(_usbd_irx);
+    MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbmass_bd_irx);
+    MODULE_REPORT("USBMASS_BD");
+ #ifndef SUPPORT_SYSTEM_2X6
     sleep(3); // Allow USB devices some time to be detected
+ #endif
 #else
     LOAD_IRX_BUF_SILENT(_usbd_irx);
+    MODULE_REPORT("USBD");
     LOAD_IRX_BUF_SILENT(_usbhdfsd_irx);
-    sleep(2); // Allow USB devices some time to be detected
+    MODULE_REPORT("USBHDFSD");
+ #ifndef SUPPORT_SYSTEM_2X6
+    sleep(3); // Allow USB devices some time to be detected
+ #endif
 #endif
-
-#ifdef HOMEBREW_IRX
+    if (mcserv_is_runnin) {
+#ifdef HOMEBREW_MCMAN
+    ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
+    DPRINTF("mcInit(MC_TYPE_XMC)..");
+    mcInit(MC_TYPE_XMC);
+#elif defined(SUPPORT_SYSTEM_2X6)
+    ON_SCREEN_INIT_PROGRESS("Initializing XMC RPC");
+    DPRINTF("mcInit(MC_TYPE_XMC)..");
     mcInit(MC_TYPE_XMC);
 #else
+    DPRINTF("mcInit(MC_TYPE_MC)..");
     mcInit(MC_TYPE_MC);
 #endif
-
-    padInitialize();
+    DPRINTF(".done\n");
+    } else {
+        DPRINTF("skipping MCSERV RPC\n");
+    }
+    if (padman_is_runnin) {
+        DPRINTF("Initializing PAD RPC..");
+        padInitialize();
+        DPRINTF(".done\n");
+    }
 
 #ifdef HDD
     if (booting_from_hdd) {
@@ -234,7 +335,7 @@ int loadModules(int booting_from_hdd)
         }
     }
 #endif
-    return 0;
+    return report_err;
 }
 
 void handlePad()
