@@ -20,6 +20,8 @@ using Cheat Device.
 ## Features
 * Easy to navigate menu system similar to CodeBreaker
 * Supports booting retail discs and loader ELFs
+* HDD build: boot ELFs stored on PFS partitions with boot paths like
+  `hdd0:__common:pfs:/APPS/OPNPS2LD.ELF` (requires starting Cheat Device from the HDD)
 * Fast loading of large cheat lists
 * Save manager for backing up and restoring game saves to/from a flash drive
 * Powered by ps2rd's powerful cheat engine

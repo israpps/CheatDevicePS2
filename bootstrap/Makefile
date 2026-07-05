@@ -6,6 +6,8 @@ EE_OBJS = main.o
 #EE_LDFLAGS = -s -Ttext 0x000F3000
 #EE_LIBS += -lkernel -lpatches -lerl
 
+EE_LIBS += -lfileXio
+
 EE_CFLAGS  := -mips3 -ffreestanding -fno-builtin -G0 \
 		-fshort-double -mlong64 -mhard-float -mno-abicalls -O2 -EL -Wall \
 		$(EE_INCS) $(EE_CFLAGS)

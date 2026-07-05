@@ -15,6 +15,15 @@
 #include "util.h"
 #include "objectpool.h"
 
+#ifdef HDD
+#include <fileXio_rpc.h>
+
+extern int booting_from_hdd;
+extern int HDD_USABLE;
+extern char MountPoint[40];
+int getMountInfo(char *path, char *mountString, char *mountPoint, char *newCWD);
+#endif
+
 typedef struct {
     u8  ident[16];  // struct definition for ELF object header
     u16 type;
@@ -86,10 +95,66 @@ static void* loadBootstrap()
     return (void *)eh->entry;
 }
 
+#ifdef HDD
+// Prepares booting an ELF from an "hdd0:partition:pfs:/path" style boot path:
+// remounts pfs0: on the target partition and checks that the ELF exists, so
+// failures show an error menu here instead of hanging in the bootstrap.
+// On failure, pfs0: is restored to the boot partition and 0 is returned.
+static int setupHddBootPath(const char *path)
+{
+    char msg[192];
+    char pathCopy[100];
+    char partition[64];
+    char pfsPath[128];
+    const char *file;
+    int ret;
+
+    if(!booting_from_hdd || !HDD_USABLE)
+    {
+        displayError("HDD boot paths can only be used when\nCheat Device was started from the HDD.");
+        return 0;
+    }
+
+    file = strstr(path, ":pfs:");
+    strncpy(pathCopy, path, sizeof(pathCopy) - 1);
+    pathCopy[sizeof(pathCopy) - 1] = '\0';
+
+    if(!file || !getMountInfo(pathCopy, NULL, partition, NULL))
+    {
+        displayError("Invalid HDD boot path!\nExpected format:\nhdd0:partition:pfs:/path/to/boot.elf");
+        return 0;
+    }
+
+    fileXioUmount("pfs0:");
+    ret = fileXioMount("pfs0:", partition, FIO_MT_RDONLY);
+    if(ret < 0)
+    {
+        snprintf(msg, sizeof(msg), "Error: failed to mount partition\n\"%s\" (%d)", partition, ret);
+        fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR);
+        displayError(msg);
+        return 0;
+    }
+
+    snprintf(pfsPath, sizeof(pfsPath), "pfs0:%s", file + 5);
+    ret = fileXioOpen(pfsPath, O_RDONLY, 0);
+    if(ret < 0)
+    {
+        snprintf(msg, sizeof(msg), "Error: couldn't open \"%s\"\non partition \"%s\" (%d)", file + 5, partition, ret);
+        fileXioUmount("pfs0:");
+        fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR);
+        displayError(msg);
+        return 0;
+    }
+    fileXioClose(ret);
+
+    return 1;
+}
+#endif
+
 void startgameExecute(const char *path)
 {
     static char boot2[100];
-    
+
     if(strcmp(path, "==Disc==") == 0)
     {
         if(!discPrompt())
@@ -143,11 +208,26 @@ void startgameExecute(const char *path)
     }
     else
     {
-        strncpy(boot2, path, 100);
+        strncpy(boot2, path, sizeof(boot2) - 1);
+        boot2[sizeof(boot2) - 1] = '\0';
     }
 
+    // Databases and settings must be saved before an HDD boot path gets a
+    // chance to remount pfs0: on another partition.
     cheatsSaveDatabase();
     settingsSave(NULL, 0);
+
+    if(strncmp(boot2, "hdd0:", 5) == 0)
+    {
+#ifdef HDD
+        if(!setupHddBootPath(boot2))
+            return;
+#else
+        displayError("HDD boot paths are only supported by\nthe HDD build of Cheat Device.");
+        return;
+#endif
+    }
+
     cheatsInstallCodesForEngine();
     killMenus();
     killCheats();
