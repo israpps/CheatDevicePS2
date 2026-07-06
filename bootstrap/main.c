@@ -87,12 +87,20 @@ static void LoadElfFromPFS(char *elfpath)
 
     GS_BGCOLOUR = red; /* RED: Opening elf */
 
-    file = strstr(elfpath, ":pfs:");
+    /* Accept both the uLaunchELF-style ":pfs:" marker and the OPL/
+       elf-loader-style ":pfs0:" one. */
+    file = strstr(elfpath, ":pfs");
     if (file == NULL)
         return;
+    file += 4;
+    while (*file >= '0' && *file <= '9')
+        file++;
+    if (*file != ':')
+        return;
+    file++;
 
     strcpy(pfspath, "pfs0:");
-    strncat(pfspath, file + 5, sizeof(pfspath) - sizeof("pfs0:"));
+    strncat(pfspath, file, sizeof(pfspath) - sizeof("pfs0:"));
 
     SifInitRpc(0);
     if (fileXioInit() < 0)

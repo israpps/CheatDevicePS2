@@ -115,7 +115,7 @@ static int setupHddBootPath(const char *path)
         return 0;
     }
 
-    file = strstr(path, ":pfs:");
+    file = pfsPathGetFilePart(path);
     strncpy(pathCopy, path, sizeof(pathCopy) - 1);
     pathCopy[sizeof(pathCopy) - 1] = '\0';
 
@@ -135,11 +135,11 @@ static int setupHddBootPath(const char *path)
         return 0;
     }
 
-    snprintf(pfsPath, sizeof(pfsPath), "pfs0:%s", file + 5);
+    snprintf(pfsPath, sizeof(pfsPath), "pfs0:%s", file);
     ret = fileXioOpen(pfsPath, O_RDONLY, 0);
     if(ret < 0)
     {
-        snprintf(msg, sizeof(msg), "Error: couldn't open \"%s\"\non partition \"%s\" (%d)", file + 5, partition, ret);
+        snprintf(msg, sizeof(msg), "Error: couldn't open \"%s\"\non partition \"%s\" (%d)", file, partition, ret);
         fileXioUmount("pfs0:");
         fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR);
         displayError(msg);

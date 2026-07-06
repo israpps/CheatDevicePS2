@@ -8,6 +8,7 @@
 #include "cheats.h"
 #include "settings.h"
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include <loadfile.h>
 #include <iopcontrol.h>
@@ -18,7 +19,7 @@
 #include <libmc.h>
 #include <unistd.h>
 
-extern char* error;
+extern char error[255];
 #define EXTERN_BIN2O(_name_) extern u8 _name_##_start[]; extern int _name_##_size;
 #define LOAD_IRX_BUF(_irx_, ARGC, ARGV, RET) SifExecModuleBuffer(_irx_##_start, _irx_##_size, ARGC, ARGV, RET)
 #define LOAD_IRX_BUF_NARG(_irx_, RET) LOAD_IRX_BUF(_irx_, 0, NULL, RET)
@@ -105,9 +106,28 @@ void poweroffCallback(void *arg)
 }
 #endif
 
+const char *pfsPathGetFilePart(const char *path)
+{
+    const char *p = strstr(path, ":pfs");
+    if(!p)
+        return NULL;
+
+    p += strlen(":pfs");
+    while(*p >= '0' && *p <= '9')
+        p++; // Skip the mount point number, if any
+
+    if(*p != ':')
+        return NULL;
+
+    return p + 1;
+}
+
 int loadModules(int booting_from_hdd)
 {
     int ID, RET, HDDSTAT, filexio_loaded=0, dev9_loaded=0, mmceman_loaded=0;
+#ifdef DEV9
+    int dev9_id=0, dev9_ret=0;
+#endif
     DPRINTF("\n ** Loading main modules **\n");
 
     /* IOP reset routine taken from ps2rd */
@@ -151,6 +171,8 @@ int loadModules(int booting_from_hdd)
     if (booting_from_hdd) {
         ID = LOAD_IRX_BUF_NARG(_ps2dev9_irx, &RET);
         dev9_loaded = IRX_LOAD_SUCCESS();
+        dev9_id = ID;
+        dev9_ret = RET;
     }
 #endif
 
@@ -240,7 +262,11 @@ int loadModules(int booting_from_hdd)
                 }
             } else {
                 sprintf(error, "HDD Init Error:\nHDD Status: %d (%s)", HDDSTAT, HDDerr(HDDSTAT));
+                return -6;
             }
+        } else {
+            sprintf(error, "HDD Init error\n%s: ID:%d, RET_%d!", "DEV9.IRX", dev9_id, dev9_ret);
+            return -7;
         }
     }
 #endif
