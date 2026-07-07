@@ -8,6 +8,7 @@
 #include <iopheap.h>
 #include <loadfile.h>
 #include <sifrpc.h>
+#include <fileXio_rpc.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -68,6 +69,102 @@ typedef struct {
     u32 align;
 } elf_pheader_t;
 
+/* Loads an ELF from a PFS partition that Cheat Device left mounted on
+ * "pfs0:" before executing the bootstrap. SifLoadElf and fio can't see
+ * iomanX devices like pfs, so the ELF is loaded manually through the
+ * fileXio RPC, whose IOP module is still resident since the IOP was not
+ * reset. elfpath is in the "hdd0:partition:pfs:/path" form and is passed
+ * as-is to the loaded ELF as argv[0]. Only returns on failure, leaving
+ * the current stage's debug color on screen. */
+static void LoadElfFromPFS(char *elfpath)
+{
+    elf_header_t boot_header;
+    elf_pheader_t boot_pheader;
+    char pfspath[256];
+    char *file;
+    char *args[1];
+    int i, fd;
+
+    GS_BGCOLOUR = red; /* RED: Opening elf */
+
+    /* Accept both the uLaunchELF-style ":pfs:" marker and the OPL/
+       elf-loader-style ":pfs0:" one. */
+    file = strstr(elfpath, ":pfs");
+    if (file == NULL)
+        return;
+    file += 4;
+    while (*file >= '0' && *file <= '9')
+        file++;
+    if (*file != ':')
+        return;
+    file++;
+
+    strcpy(pfspath, "pfs0:");
+    strncat(pfspath, file, sizeof(pfspath) - sizeof("pfs0:"));
+
+    SifInitRpc(0);
+    if (fileXioInit() < 0)
+        return;
+
+    fd = fileXioOpen(pfspath, O_RDONLY, 0);
+    if (fd < 0)
+        return;
+
+    GS_BGCOLOUR = blue; /* BLUE: Installing elf header */
+    if (fileXioRead(fd, (void *)&boot_header, sizeof(elf_header_t)) != sizeof(elf_header_t)) {
+        fileXioClose(fd);
+        return;
+    }
+
+    GS_BGCOLOUR = white;
+    /* check ELF magic */
+    if ((*(u32*)boot_header.ident) != ELF_MAGIC) {
+        fileXioClose(fd);
+        return;
+    }
+
+    GS_BGCOLOUR = green; /* GREEN: Reading elf */
+    /* copy loadable program segments to RAM */
+    for (i = 0; i < boot_header.phnum; i++) {
+        fileXioLseek(fd, boot_header.phoff + (i * sizeof(elf_pheader_t)), SEEK_SET);
+        fileXioRead(fd, (void *)&boot_pheader, sizeof(elf_pheader_t));
+
+        if (boot_pheader.type != ELF_PT_LOAD)
+            continue;
+
+        fileXioLseek(fd, boot_pheader.offset, SEEK_SET);
+        fileXioRead(fd, boot_pheader.vaddr, boot_pheader.filesz);
+
+        if (boot_pheader.memsz > boot_pheader.filesz)
+            memset(boot_pheader.vaddr + boot_pheader.filesz, 0,
+                    boot_pheader.memsz - boot_pheader.filesz);
+    }
+
+    fileXioClose(fd);
+    fileXioUmount("pfs0:");
+
+    GS_BGCOLOUR = yellow; /* YELLOW: ExecPS2 */
+
+    /* IOP reboot routine from ps2rd */
+    while (!SifIopReset("rom0:UDNL rom0:EELOADCNF", 0))
+        ;
+    while (!SifIopSync())
+        ;
+
+    /* exit services */
+    fioExit();
+    SifExitIopHeap();
+    SifLoadFileExit();
+    SifExitRpc();
+    SifExitCmd();
+
+    FlushCache(0);
+    FlushCache(2);
+
+    args[0] = elfpath;
+    ExecPS2((u32*)boot_header.entry, 0, 1, args);
+}
+
 /* From NetCheat */
 void MyLoadElf(char *elfpath)
 {
@@ -87,6 +184,14 @@ void MyLoadElf(char *elfpath)
 
     /* Clear scratchpad memory */
     memset((void*)0x70000000, 0, 16 * 1024);
+
+    /* ELFs on the HDD live on PFS partitions, which SifLoadElf and fio
+       can't read. Load them through fileXio instead. */
+    if (elfpath[0] == 'h' && elfpath[1] == 'd' && elfpath[2] == 'd')
+    {
+        LoadElfFromPFS(elfpath); /* only returns on failure */
+        SleepThread();
+    }
 
     /* HACK do not reset IOP when launching ELF from mass */
 	if (!(elfpath[0] == 'm' && elfpath[1] == 'a' &&

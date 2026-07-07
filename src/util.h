@@ -58,6 +58,12 @@ int getNumLines(const char *str);
 void replaceIllegalChars(const char *str, char* valid, char replacement);
 // Remove trailing whitespace from str.
 char* rtrim(char *str);
+// Get the file path portion following the ":pfs:" or ":pfsN:" marker in an
+// "hdd0:partition:pfs:path" style boot path, or NULL if there is no marker.
+// uLaunchELF-style launchers use ":pfs:" while OPL (through ps2sdk's
+// elf-loader) produces ":pfs0:".
+const char *pfsPathGetFilePart(const char *path);
+
 // Get file extension from filename. Returns null if filename doesn't have an extension.
 const char* getFileExtension(const char *filename);
 // Get file path without extension.

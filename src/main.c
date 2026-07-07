@@ -36,15 +36,19 @@ int main(int argc, char *argv[])
 #endif
 #ifdef HDD
     DPRINTF("Checking if booting from HDD\n");
-    if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(strstr(argv[0], ":pfs:")!=NULL);
+    // uLaunchELF-style launchers pass "hdd0:partition:pfs:/path/file.elf"
+    // while OPL (through ps2sdk's elf-loader) passes
+    // "hdd0:partition:pfs0:path/file.elf", so accept both pfs markers.
+    if (argc > 0) booting_from_hdd = (strstr(argv[0], "hdd0:")!=NULL)&&(pfsPathGetFilePart(argv[0])!=NULL);
     DPRINTF("Booting from hdd:%d\n", booting_from_hdd);
+    if (booting_from_hdd) {
     char* BUF = NULL;
     BUF = strdup(argv[0]); //use strdup, otherwise, path will become `hdd0:`
     if (BUF==NULL) {
         DPRINTF("Could not strdup()\n");
     }
     if (getMountInfo(BUF, NULL, MountPoint, pfspath)) {
-        
+
     DPRINTF("MountPoint '%s'\npfspath '%s'\n", MountPoint, pfspath);
     char *pos = strrchr(pfspath, '/');
     if (pos != NULL) {
@@ -61,12 +65,13 @@ int main(int argc, char *argv[])
         chdir(pfspath);
     } else displayError("Error processing HDD boot path (2)");
     } else displayError("Error processing HDD boot path (1)");
+    }
 #endif
     
     ret = loadModules(booting_from_hdd);
     if (ret != 0) displayError(error);
 #ifdef HDD
-    if (ret == 0) {
+    if (ret == 0 && booting_from_hdd) {
         int mtret=0;
         if ((mtret=fileXioMount("pfs0:", MountPoint, FIO_MT_RDWR)) < 0) {
             sprintf(error, "Error: failed to mount partition \"%s\"!\nerr:%d (0x%x)", MountPoint, mtret, mtret);
